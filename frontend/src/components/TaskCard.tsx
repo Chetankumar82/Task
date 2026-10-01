@@ -10,7 +10,10 @@ import {
   RotateCcw, 
   Trash2, 
   Edit3,
-  Clock
+  Clock,
+  Flame,
+  Zap,
+  AlertTriangle
 } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
 
@@ -40,31 +43,48 @@ export function TaskCard({
   // Check if task is overdue
   const isOverdue = task.due_date && task.status !== 'completed' && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0));
 
+  const priorityConfig = {
+    urgent: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.35)', icon: Flame },
+    high: { color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.35)', icon: Zap },
+    medium: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)', border: 'rgba(56, 189, 248, 0.35)', icon: Clock },
+    low: { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', icon: CheckCircle },
+  }[task.priority] || { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', icon: Clock };
+
+  const PriorityIcon = priorityConfig.icon;
+
   return (
     <div
       className="glass-panel interactive-card"
       style={{
-        padding: '16px',
+        padding: '16px 18px',
         marginBottom: '12px',
         position: 'relative',
         cursor: 'default',
-        border: '1px solid var(--border-subtle)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderLeft: `4px solid ${priorityConfig.color}`,
+        borderRadius: '12px',
       }}
     >
       {/* Top Header: Priority Badge + Edit/Delete Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <span 
-          className={`badge-priority-${task.priority}`}
           style={{
             fontSize: '11px',
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.4px',
-            padding: '2px 8px',
-            borderRadius: '9999px',
+            padding: '3px 8px',
+            borderRadius: '6px',
+            background: priorityConfig.bg,
+            color: priorityConfig.color,
+            border: `1px solid ${priorityConfig.border}`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
           }}
         >
-          {task.priority}
+          <PriorityIcon size={12} color={priorityConfig.color} />
+          <span>{task.priority}</span>
         </span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -135,17 +155,21 @@ export function TaskCard({
       {/* Due Date & Overdue Indicator */}
       {formattedDueDate && (
         <div style={{ 
-          display: 'flex', 
+          display: 'inline-flex', 
           alignItems: 'center', 
           gap: '6px', 
           fontSize: '11px', 
           color: isOverdue ? '#fca5a5' : '#cbd5e1',
+          background: isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+          border: isOverdue ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '3px 8px',
+          borderRadius: '6px',
           marginBottom: '12px',
           fontWeight: isOverdue ? 600 : 500
         }}>
-          <Clock size={12} color={isOverdue ? '#f87171' : '#818cf8'} />
+          <Calendar size={12} color={isOverdue ? '#f87171' : '#818cf8'} />
           <span>Due {formattedDueDate}</span>
-          {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px' }}>(Overdue)</span>}
+          {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px', color: '#f87171' }}>• Overdue</span>}
         </div>
       )}
 
@@ -173,7 +197,7 @@ export function TaskCard({
                 fontSize: '10px',
                 fontWeight: 600,
                 color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                border: '1.5px solid rgba(255, 255, 255, 0.25)',
               }}>
                 {task.assignee.avatar_url ? (
                   <img src={task.assignee.avatar_url} alt="" style={{ width: '100%', height: '100%' }} />
@@ -181,7 +205,7 @@ export function TaskCard({
                   task.assignee.full_name?.charAt(0) || 'U'
                 )}
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#ffffff', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {task.assignee.full_name?.split(' ')[0]}
               </span>
             </div>

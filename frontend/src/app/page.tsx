@@ -20,7 +20,18 @@ import {
   TaskFormData, 
   SystemHealth 
 } from '@/lib/types';
-import { Plus, Sparkles, RefreshCw, Mail, CheckCircle2 } from 'lucide-react';
+import { 
+  Plus, 
+  Sparkles, 
+  RefreshCw, 
+  Mail, 
+  CheckCircle2, 
+  BarChart3, 
+  ChevronDown, 
+  PieChart as PieIcon,
+  Layers,
+  Activity
+} from 'lucide-react';
 
 export default function DashboardPage() {
   const { showToast } = useToast();
@@ -46,6 +57,7 @@ export default function DashboardPage() {
   const [scopeFilter, setScopeFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'analytics'>('kanban');
+  const [showInsights, setShowInsights] = useState(true);
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -260,32 +272,28 @@ export default function DashboardPage() {
           marginBottom: '28px',
         }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '13px', color: '#818cf8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Hairdrama Tech Workspace
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Collaborative Task Management
-              </span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', color: '#c7d2fe', fontWeight: 600, marginBottom: '10px' }}>
+              <span className="pulse-indicator" style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+              <span>Hairdrama Tech Workspace &bull; Supabase PostgreSQL &bull; Gmail SMTP</span>
             </div>
             <h1 style={{
               fontSize: '32px',
               fontWeight: 800,
               fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.5px',
+              letterSpacing: '-0.8px',
               color: '#ffffff',
+              lineHeight: 1.2,
             }}>
               {currentUser ? (
                 <>Welcome back, <span className="gradient-text">{currentUser.full_name?.split(' ')[0]}</span> 👋</>
               ) : (
-                <>Task Management for <span className="gradient-text">Product Teams</span></>
+                <>Collaborative Task Management for <span className="gradient-text">Product Teams</span></>
               )}
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '640px' }}>
+            <p style={{ fontSize: '14px', color: '#cbd5e1', marginTop: '6px', maxWidth: '680px', lineHeight: 1.6 }}>
               {currentUser 
-                ? 'Create, organize, and assign tasks across team members with real-time Gmail email dispatch on task creation and completion.'
-                : 'Sign in with your Google or Gmail account to assign tasks to teammates and receive automated email dispatches.'
+                ? 'Manage projects, assign teammates, and track status with real-time automated Gmail notifications on creation and completion.'
+                : 'Sign in to assign tasks to teammates and receive automated email dispatches via Gmail SMTP.'
               }
             </p>
           </div>
@@ -340,6 +348,81 @@ export default function DashboardPage() {
             }
           }}
         />
+
+        {/* Executive Visual Intelligence Panel (Donut Chart, Priority Heatmap, Workload Bars) */}
+        {viewMode !== 'analytics' && (
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '14px',
+              padding: '0 4px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  background: 'rgba(99, 102, 241, 0.2)',
+                  border: '1px solid rgba(99, 102, 241, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <BarChart3 size={15} color="#818cf8" />
+                </div>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>
+                  Visual Analytics &amp; Project Health
+                </span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  background: 'rgba(99, 102, 241, 0.15)',
+                  color: '#818cf8',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                }}>
+                  Interactive Insights
+                </span>
+              </div>
+
+              <button
+                onClick={() => setShowInsights(!showInsights)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  padding: '5px 12px',
+                  color: '#cbd5e1',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = '#ffffff'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
+              >
+                <span>{showInsights ? 'Hide Insights' : 'Show Insights'}</span>
+                <ChevronDown size={14} style={{ transform: showInsights ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+              </button>
+            </div>
+
+            {showInsights && (
+              <AnalyticsCharts
+                tasks={tasks}
+                stats={stats}
+                allUsers={allUsers}
+                onFilterByStatus={(st) => setStatusFilter(st)}
+                onFilterByPriority={(pr) => setPriorityFilter(pr)}
+              />
+            )}
+          </div>
+        )}
 
         {/* Active Filters Pill Bar (when filters applied) */}
         {(statusFilter !== 'all' || priorityFilter !== 'all' || scopeFilter !== 'all' || searchQuery.trim() !== '') && (

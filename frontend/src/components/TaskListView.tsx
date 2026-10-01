@@ -34,7 +34,8 @@ export function TaskListView({
         style={{
           padding: '48px 24px',
           textAlign: 'center',
-          color: 'var(--text-muted)',
+          color: '#cbd5e1',
+          fontSize: '14px',
         }}
       >
         No tasks match your current filter criteria.
@@ -175,7 +176,12 @@ export function TaskListView({
                       <button
                         onClick={() => onStatusChange(task.id, 'completed')}
                         className="btn-primary"
-                        style={{ fontSize: '11px', padding: '4px 8px', background: '#059669' }}
+                        style={{ 
+                          fontSize: '11px', 
+                          padding: '4px 10px', 
+                          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                        }}
                       >
                         Complete
                       </button>
@@ -195,7 +201,7 @@ export function TaskListView({
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--text-muted)',
+                        color: '#cbd5e1',
                         cursor: 'pointer',
                         padding: '4px',
                       }}

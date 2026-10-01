@@ -67,13 +67,17 @@ export function KanbanBoard({
           <div
             key={col.status}
             style={{
-              background: 'rgba(15, 23, 42, 0.5)',
+              background: 'linear-gradient(180deg, rgba(20, 29, 47, 0.7) 0%, rgba(11, 17, 30, 0.8) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '16px',
-              border: '1px solid var(--border-subtle)',
-              padding: '16px',
-              minHeight: '480px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: `3px solid ${col.color}`,
+              padding: '18px 16px',
+              minHeight: '500px',
               display: 'flex',
               flexDirection: 'column',
+              boxShadow: '0 12px 32px -8px rgba(0, 0, 0, 0.5)',
             }}
           >
             {/* Column Header */}
@@ -83,30 +87,32 @@ export function KanbanBoard({
               justifyContent: 'space-between',
               marginBottom: '16px',
               paddingBottom: '12px',
-              borderBottom: '1px solid var(--border-subtle)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '6px',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '7px',
                   background: col.bgColor,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  border: `1px solid ${col.color}40`,
                 }}>
                   <Icon size={14} color={col.color} />
                 </div>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.2px' }}>
                   {col.title}
                 </span>
                 <span style={{
                   fontSize: '11px',
-                  fontWeight: 600,
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  padding: '1px 8px',
+                  fontWeight: 700,
+                  background: col.bgColor,
+                  color: col.color,
+                  border: `1px solid ${col.color}40`,
+                  padding: '2px 8px',
                   borderRadius: '9999px',
-                  color: 'var(--text-secondary)',
                 }}>
                   {columnTasks.length}
                 </span>
@@ -117,12 +123,18 @@ export function KanbanBoard({
                   onClick={onOpenCreateModal}
                   style={{
                     background: 'rgba(255, 255, 255, 0.06)',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '4px',
-                    color: 'var(--text-secondary)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '7px',
+                    padding: '5px',
+                    color: '#cbd5e1',
                     cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; e.currentTarget.style.color = '#ffffff'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.color = '#cbd5e1'; }}
                   title="Add Task to Pending"
                 >
                   <Plus size={14} />

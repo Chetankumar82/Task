@@ -94,6 +94,10 @@ export function StatsCards({
     }}>
       {cards.map((card, idx) => {
         const Icon = card.icon;
+        const cardPct = stats.total_tasks > 0 
+          ? Math.round((Number(card.value) / stats.total_tasks) * 100) 
+          : 0;
+
         return (
           <div
             key={idx}
@@ -109,10 +113,11 @@ export function StatsCards({
               cursor: 'pointer',
               border: card.isActive 
                 ? `2px solid ${card.color}` 
-                : '1px solid var(--border-subtle)',
+                : '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: `3px solid ${card.color}`,
               boxShadow: card.isActive 
-                ? `0 0 20px ${card.bgGlow}` 
-                : undefined,
+                ? `0 0 24px ${card.bgGlow}, 0 12px 30px -10px rgba(0, 0, 0, 0.7)` 
+                : '0 10px 25px -10px rgba(0, 0, 0, 0.5)',
             }}
           >
             {/* Top Row: Title + Icon */}
@@ -125,6 +130,7 @@ export function StatsCards({
                 height: '36px',
                 borderRadius: '10px',
                 background: card.bgGlow,
+                border: `1px solid ${card.color}30`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -134,9 +140,9 @@ export function StatsCards({
             </div>
 
             {/* Metric Value */}
-            <div style={{ marginTop: '14px', marginBottom: '8px' }}>
+            <div style={{ marginTop: '14px', marginBottom: '6px' }}>
               <span style={{ 
-                fontSize: '30px', 
+                fontSize: '32px', 
                 fontWeight: 800, 
                 fontFamily: 'var(--font-display)',
                 letterSpacing: '-0.5px',
@@ -151,21 +157,22 @@ export function StatsCards({
               {card.subtext}
             </div>
 
-            {/* Progress bar on Completed card */}
-            {card.title === 'Completed' && stats.total_tasks > 0 && (
+            {/* Mini Progress meter */}
+            {stats.total_tasks > 0 && card.filterValue !== 'all' && (
               <div style={{
                 width: '100%',
-                height: '5px',
-                background: 'rgba(255, 255, 255, 0.1)',
+                height: '4px',
+                background: 'rgba(255, 255, 255, 0.08)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
                 marginTop: '12px',
               }}>
                 <div style={{
-                  width: `${completionRate}%`,
+                  width: `${cardPct}%`,
                   height: '100%',
-                  background: 'linear-gradient(90deg, #10b981, #34d399)',
+                  background: card.color,
                   transition: 'width 0.4s ease',
+                  borderRadius: '9999px',
                 }} />
               </div>
             )}

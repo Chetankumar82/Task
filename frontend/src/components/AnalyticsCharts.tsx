@@ -111,7 +111,7 @@ export function AnalyticsCharts({
             </div>
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Task Status Distribution</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Real-time breakdown</p>
+              <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Real-time breakdown</p>
             </div>
           </div>
           <span style={{
@@ -204,7 +204,7 @@ export function AnalyticsCharts({
             <span style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-display)', lineHeight: 1 }}>
               {total}
             </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px', fontWeight: 600 }}>
               {hoveredSlice ? hoveredSlice.replace('_', ' ').toUpperCase() : 'TOTAL TASKS'}
             </span>
           </div>
@@ -231,7 +231,7 @@ export function AnalyticsCharts({
               Completed
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{completed}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{completionPct}%</div>
+            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{completionPct}%</div>
           </div>
 
           <div 
@@ -253,7 +253,7 @@ export function AnalyticsCharts({
               In Progress
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{inProgress}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{inProgressPct}%</div>
+            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{inProgressPct}%</div>
           </div>
 
           <div 
@@ -275,7 +275,7 @@ export function AnalyticsCharts({
               Pending
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{pending}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{pendingPct}%</div>
+            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{pendingPct}%</div>
           </div>
         </div>
       </div>
@@ -306,7 +306,7 @@ export function AnalyticsCharts({
               </div>
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Priority Heatmap</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Urgency distribution</p>
+                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Urgency distribution</p>
               </div>
             </div>
             <span style={{
@@ -390,7 +390,7 @@ export function AnalyticsCharts({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: p.color }}>{p.count}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({p.pct}%)</span>
+                  <span style={{ fontSize: '11px', color: '#cbd5e1' }}>({p.pct}%)</span>
                 </div>
               </div>
             ))}
@@ -424,7 +424,7 @@ export function AnalyticsCharts({
               </div>
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Team Workload</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Active task assignments</p>
+                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Active task assignments</p>
               </div>
             </div>
             <span style={{
