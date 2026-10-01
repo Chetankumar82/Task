@@ -41,21 +41,38 @@ def require_auth(f):
         # 2. Mock Token Check (useful for automated testing & development)
         if token.startswith("mock-user-"):
             key_id = token.replace("mock-user-", "")
-            # Direct id match
-            if key_id in mock_store.profiles:
-                g.current_user = mock_store.profiles[key_id]
+            
+            alias_map = {
+                "sarah": "11111111-1111-4111-a111-111111111111",
+                "usr_demo_1": "11111111-1111-4111-a111-111111111111",
+                "1": "11111111-1111-4111-a111-111111111111",
+                "alex": "22222222-2222-4222-a222-222222222222",
+                "usr_demo_2": "22222222-2222-4222-a222-222222222222",
+                "2": "22222222-2222-4222-a222-222222222222",
+                "john": "33333333-3333-4333-a333-333333333333",
+                "usr_demo_3": "33333333-3333-4333-a333-333333333333",
+                "3": "33333333-3333-4333-a333-333333333333",
+            }
+            resolved_id = alias_map.get(key_id, key_id)
+
+            # Query database
+            db_profile = DatabaseService.get_profile_by_id(resolved_id)
+            if db_profile:
+                g.current_user = db_profile
                 return f(*args, **kwargs)
-            # Match usr_demo_X
-            mapped_key = f"usr_demo_{key_id}"
-            if mapped_key in mock_store.profiles:
-                g.current_user = mock_store.profiles[mapped_key]
+
+            # Check email match
+            email_profile = DatabaseService.get_profile_by_email(key_id)
+            if email_profile:
+                g.current_user = email_profile
                 return f(*args, **kwargs)
-            # Match by name or email alias (e.g. sarah, alex, john)
-            for profile in mock_store.profiles.values():
-                if key_id.lower() in profile["email"].lower() or key_id.lower() in profile["full_name"].lower():
-                    g.current_user = profile
-                    return f(*args, **kwargs)
-            # Default to first profile if mock token provided
+
+            # Default to first profile in database
+            all_p = DatabaseService.get_all_profiles()
+            if all_p:
+                g.current_user = all_p[0]
+                return f(*args, **kwargs)
+
             g.current_user = list(mock_store.profiles.values())[0]
             return f(*args, **kwargs)
 

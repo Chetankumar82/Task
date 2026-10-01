@@ -48,7 +48,7 @@ class TaskManagementAPITestCase(unittest.TestCase):
             "description": "Configure GitHub Actions workflow for linting and test execution.",
             "priority": "high",
             "due_date": "2026-10-18",
-            "assigned_to": "usr_demo_2"
+            "assigned_to": "22222222-2222-4222-a222-222222222222"
         }
         create_res = self.client.post(
             "/api/tasks",
@@ -77,7 +77,7 @@ class TaskManagementAPITestCase(unittest.TestCase):
             data=json.dumps({
                 "title": "Refactor Data Layer",
                 "priority": "medium",
-                "assigned_to": "usr_demo_2"
+                "assigned_to": "22222222-2222-4222-a222-222222222222"
             })
         )
         task_id = create_res.get_json()["data"]["id"]

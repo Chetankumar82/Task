@@ -8,7 +8,8 @@ class Config:
     """Application configuration loaded from environment variables."""
     SECRET_KEY = os.getenv("SECRET_KEY", "hairdrama-super-secret-key-change-in-production")
     
-    # Supabase Configuration
+    # Database & Supabase Configuration
+    DATABASE_URL = os.getenv("DATABASE_URL", "")
     SUPABASE_URL = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
     SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
