@@ -80,6 +80,7 @@ def create_task():
         assignee_profile = DatabaseService.get_profile_by_id(assigned_to)
         if not assignee_profile:
             return jsonify({"error": "Validation Error", "message": "Selected assignee does not exist."}), 400
+        assigned_to = assignee_profile["id"]
 
     task_payload = {
         "title": title,
@@ -141,7 +142,14 @@ def update_task(task_id):
     if "due_date" in data:
         updates["due_date"] = data["due_date"]
     if "assigned_to" in data:
-        updates["assigned_to"] = data["assigned_to"] or None
+        assigned_val = data["assigned_to"]
+        if assigned_val:
+            assignee_profile = DatabaseService.get_profile_by_id(assigned_val)
+            if not assignee_profile:
+                return jsonify({"error": "Validation Error", "message": "Selected assignee does not exist."}), 400
+            updates["assigned_to"] = assignee_profile["id"]
+        else:
+            updates["assigned_to"] = None
 
     updated_task = DatabaseService.update_task(task_id, updates)
     if not updated_task:

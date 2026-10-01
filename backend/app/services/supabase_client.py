@@ -50,19 +50,19 @@ def ensure_default_seed(conn):
             if count == 0:
                 demo_profiles = [
                     (
-                        "usr_demo_1",
+                        "11111111-1111-4111-a111-111111111111",
                         "sarah.developer@gmail.com",
                         "Sarah Connor",
                         "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
                     ),
                     (
-                        "usr_demo_2",
+                        "22222222-2222-4222-a222-222222222222",
                         "alex.tech@gmail.com",
                         "Alex Vance",
                         "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
                     ),
                     (
-                        "usr_demo_3",
+                        "33333333-3333-4333-a333-333333333333",
                         "john.hairdrama@gmail.com",
                         "John Doe",
                         "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
@@ -82,6 +82,35 @@ def ensure_default_seed(conn):
         logger.warning("Could not auto-seed demo profiles: %s", e)
 
 
+DEMO_ALIASES: Dict[str, str] = {
+    "usr_demo_1": "11111111-1111-4111-a111-111111111111",
+    "1": "11111111-1111-4111-a111-111111111111",
+    "sarah": "11111111-1111-4111-a111-111111111111",
+    "usr_demo_2": "22222222-2222-4222-a222-222222222222",
+    "2": "22222222-2222-4222-a222-222222222222",
+    "alex": "22222222-2222-4222-a222-222222222222",
+    "usr_demo_3": "33333333-3333-4333-a333-333333333333",
+    "3": "33333333-3333-4333-a333-333333333333",
+    "john": "33333333-3333-4333-a333-333333333333",
+}
+
+
+def resolve_user_id(uid: Optional[str]) -> Optional[str]:
+    if not uid:
+        return None
+    return DEMO_ALIASES.get(uid, uid)
+
+
+def is_valid_uuid(val: Any) -> bool:
+    if not val or not isinstance(val, str):
+        return False
+    try:
+        uuid.UUID(str(val))
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
 with get_db() as init_conn:
     if init_conn:
         logger.info("Successfully connected to live Supabase PostgreSQL database!")
@@ -92,31 +121,37 @@ with get_db() as init_conn:
 
 class MockDataStore:
     def __init__(self):
+        p1 = {
+            "id": "11111111-1111-4111-a111-111111111111",
+            "email": "sarah.developer@gmail.com",
+            "full_name": "Sarah Connor",
+            "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        p2 = {
+            "id": "22222222-2222-4222-a222-222222222222",
+            "email": "alex.tech@gmail.com",
+            "full_name": "Alex Vance",
+            "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        p3 = {
+            "id": "33333333-3333-4333-a333-333333333333",
+            "email": "john.hairdrama@gmail.com",
+            "full_name": "John Doe",
+            "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
         self.profiles: Dict[str, Dict[str, Any]] = {
-            "usr_demo_1": {
-                "id": "usr_demo_1",
-                "email": "sarah.developer@gmail.com",
-                "full_name": "Sarah Connor",
-                "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            },
-            "usr_demo_2": {
-                "id": "usr_demo_2",
-                "email": "alex.tech@gmail.com",
-                "full_name": "Alex Vance",
-                "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            },
-            "usr_demo_3": {
-                "id": "usr_demo_3",
-                "email": "john.hairdrama@gmail.com",
-                "full_name": "John Doe",
-                "avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            },
+            p1["id"]: p1,
+            "usr_demo_1": p1,
+            p2["id"]: p2,
+            "usr_demo_2": p2,
+            p3["id"]: p3,
+            "usr_demo_3": p3,
         }
         self.tasks: Dict[str, Dict[str, Any]] = {
             "task_demo_1": {
@@ -126,8 +161,8 @@ class MockDataStore:
                 "status": "completed",
                 "priority": "high",
                 "due_date": "2026-10-05",
-                "created_by": "usr_demo_1",
-                "assigned_to": "usr_demo_2",
+                "created_by": p1["id"],
+                "assigned_to": p2["id"],
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             },
@@ -138,8 +173,8 @@ class MockDataStore:
                 "status": "in_progress",
                 "priority": "urgent",
                 "due_date": "2026-10-10",
-                "created_by": "usr_demo_2",
-                "assigned_to": "usr_demo_1",
+                "created_by": p1["id"],
+                "assigned_to": p3["id"],
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             },
@@ -168,17 +203,18 @@ class DatabaseService:
 
     @staticmethod
     def get_profile_by_id(profile_id: str) -> Optional[Dict[str, Any]]:
+        resolved_id = resolve_user_id(profile_id) or profile_id
         with get_db() as conn:
-            if conn:
+            if conn and is_valid_uuid(resolved_id):
                 try:
                     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                        cur.execute("SELECT * FROM public.profiles WHERE id = %s;", (profile_id,))
+                        cur.execute("SELECT * FROM public.profiles WHERE id = %s;", (resolved_id,))
                         row = cur.fetchone()
                         if row:
                             return dict(row)
                 except Exception as e:
-                    logger.error("Error querying profile %s: %s", profile_id, e)
-        return mock_store.profiles.get(profile_id)
+                    logger.error("Error querying profile %s: %s", resolved_id, e)
+        return mock_store.profiles.get(resolved_id) or mock_store.profiles.get(profile_id)
 
     @staticmethod
     def get_profile_by_email(email: str) -> Optional[Dict[str, Any]]:
@@ -313,12 +349,13 @@ class DatabaseService:
                         if priority and priority != "all":
                             query += " AND t.priority = %s"
                             params.append(priority)
-                        if filter_type == "assigned_to_me" and user_id:
+                        resolved_user_id = resolve_user_id(user_id) or user_id
+                        if filter_type == "assigned_to_me" and resolved_user_id:
                             query += " AND t.assigned_to = %s"
-                            params.append(user_id)
-                        elif filter_type == "created_by_me" and user_id:
+                            params.append(resolved_user_id)
+                        elif filter_type == "created_by_me" and resolved_user_id:
                             query += " AND t.created_by = %s"
-                            params.append(user_id)
+                            params.append(resolved_user_id)
                         if search:
                             query += " AND (LOWER(t.title) LIKE %s OR LOWER(t.description) LIKE %s)"
                             term = f"%{search.lower()}%"
@@ -358,7 +395,7 @@ class DatabaseService:
     @staticmethod
     def get_task_by_id(task_id: str) -> Optional[Dict[str, Any]]:
         with get_db() as conn:
-            if conn:
+            if conn and is_valid_uuid(task_id):
                 try:
                     with conn.cursor(cursor_factory=RealDictCursor) as cur:
                         query = """
@@ -395,11 +432,11 @@ class DatabaseService:
         status = data.get("status", "pending")
         priority = data.get("priority", "medium")
         due_date = data.get("due_date") or None
-        created_by = data.get("created_by")
-        assigned_to = data.get("assigned_to") or None
+        created_by = resolve_user_id(data.get("created_by")) or data.get("created_by")
+        assigned_to = resolve_user_id(data.get("assigned_to")) or data.get("assigned_to") or None
 
         with get_db() as conn:
-            if conn:
+            if conn and is_valid_uuid(created_by) and (assigned_to is None or is_valid_uuid(assigned_to)):
                 try:
                     with conn.cursor() as cur:
                         cur.execute(
@@ -431,14 +468,18 @@ class DatabaseService:
 
     @staticmethod
     def update_task(task_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        clean_updates = dict(updates)
+        if "assigned_to" in clean_updates:
+            clean_updates["assigned_to"] = resolve_user_id(clean_updates["assigned_to"]) or clean_updates["assigned_to"] or None
+
         with get_db() as conn:
-            if conn:
+            if conn and is_valid_uuid(task_id):
                 try:
                     with conn.cursor() as cur:
                         allowed = ["title", "description", "status", "priority", "due_date", "assigned_to"]
                         set_clauses = []
                         params = []
-                        for k, v in updates.items():
+                        for k, v in clean_updates.items():
                             if k in allowed:
                                 set_clauses.append(f"{k} = %s")
                                 params.append(v if v != "" else None)
@@ -449,12 +490,13 @@ class DatabaseService:
                             query = f"UPDATE public.tasks SET {', '.join(set_clauses)} WHERE id = %s;"
                             cur.execute(query, tuple(params))
                             conn.commit()
-                    return DatabaseService.get_task_by_id(task_id)
+                            if cur.rowcount > 0:
+                                return DatabaseService.get_task_by_id(task_id)
                 except Exception as e:
                     logger.error("Error updating task: %s", e)
 
         if task_id in mock_store.tasks:
-            mock_store.tasks[task_id].update(updates)
+            mock_store.tasks[task_id].update(clean_updates)
             mock_store.tasks[task_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
             return DatabaseService.get_task_by_id(task_id)
         return None
@@ -462,12 +504,13 @@ class DatabaseService:
     @staticmethod
     def delete_task(task_id: str) -> bool:
         with get_db() as conn:
-            if conn:
+            if conn and is_valid_uuid(task_id):
                 try:
                     with conn.cursor() as cur:
                         cur.execute("DELETE FROM public.tasks WHERE id = %s;", (task_id,))
                         conn.commit()
-                        return cur.rowcount > 0
+                        if cur.rowcount > 0:
+                            return True
                 except Exception as e:
                     logger.error("Error deleting task: %s", e)
 
