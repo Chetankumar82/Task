@@ -206,19 +206,35 @@ class DatabaseService:
         if conn:
             try:
                 with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute(
-                        """
-                        INSERT INTO public.profiles (id, email, full_name, avatar_url, updated_at)
-                        VALUES (%s, %s, %s, %s, timezone('utc'::text, now()))
-                        ON CONFLICT (id) DO UPDATE
-                        SET full_name = EXCLUDED.full_name,
-                            avatar_url = EXCLUDED.avatar_url,
-                            email = EXCLUDED.email,
-                            updated_at = timezone('utc'::text, now())
-                        RETURNING *;
-                        """,
-                        (profile_id, email, full_name, avatar_url),
-                    )
+                    # Check if a profile with this email already exists
+                    cur.execute("SELECT id FROM public.profiles WHERE LOWER(email) = LOWER(%s);", (email,))
+                    existing = cur.fetchone()
+                    if existing:
+                        cur.execute(
+                            """
+                            UPDATE public.profiles
+                            SET full_name = COALESCE(NULLIF(%s, ''), full_name),
+                                avatar_url = COALESCE(NULLIF(%s, ''), avatar_url),
+                                updated_at = timezone('utc'::text, now())
+                            WHERE id = %s
+                            RETURNING *;
+                            """,
+                            (full_name, avatar_url, existing["id"])
+                        )
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO public.profiles (id, email, full_name, avatar_url, updated_at)
+                            VALUES (%s, %s, %s, %s, timezone('utc'::text, now()))
+                            ON CONFLICT (id) DO UPDATE
+                            SET full_name = EXCLUDED.full_name,
+                                avatar_url = EXCLUDED.avatar_url,
+                                email = EXCLUDED.email,
+                                updated_at = timezone('utc'::text, now())
+                            RETURNING *;
+                            """,
+                            (profile_id, email, full_name, avatar_url),
+                        )
                     conn.commit()
                     row = cur.fetchone()
                     if row:
