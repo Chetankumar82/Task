@@ -21,6 +21,7 @@ interface NavbarProps {
   onSwitchUser: (user: UserProfile) => void;
   allUsers: UserProfile[];
   onOpenLoginModal: () => void;
+  onSignOut: () => void;
   systemHealth?: SystemHealth | null;
 }
 
@@ -30,14 +31,16 @@ export function Navbar({
   onSwitchUser,
   allUsers,
   onOpenLoginModal,
+  onSignOut,
   systemHealth,
 }: NavbarProps) {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [healthModalOpen, setHealthModalOpen] = useState(false);
 
   const handleSignOut = async () => {
+    setUserDropdownOpen(false);
     await signOutUser();
-    window.location.reload();
+    onSignOut();
   };
 
   return (
@@ -269,6 +272,30 @@ export function Navbar({
                   ))}
 
                   <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '6px 0' }} />
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      onOpenLoginModal();
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#a5b4fc',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <User size={14} />
+                    <span>Sign In with Another Account</span>
+                  </button>
 
                   <button
                     onClick={handleSignOut}

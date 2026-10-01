@@ -54,6 +54,12 @@ export default function DashboardPage() {
   useEffect(() => {
     async function initAuth() {
       try {
+        const isLoggedOut = localStorage.getItem('user_logged_out') === 'true';
+        if (isLoggedOut) {
+          setCurrentUser(null);
+          return;
+        }
+
         // Check live Supabase session
         if (supabase) {
           const { data: { session } } = await supabase.auth.getSession();
@@ -76,7 +82,7 @@ export default function DashboardPage() {
         if (storedUser) {
           setCurrentUser(JSON.parse(storedUser));
         } else {
-          // Default to first demo reviewer account for instant access
+          // Default to first demo reviewer account for instant initial preview
           const defaultUser: UserProfile = {
             id: 'usr_demo_1',
             email: 'sarah.developer@gmail.com',
@@ -209,11 +215,19 @@ export default function DashboardPage() {
     }
   };
 
-  // 7. Handle User Switching
-  const handleSwitchUser = (user: UserProfile) => {
-    setCurrentUser(user);
+  // 7. Handle User Switching & Sign In
+  const handleSelectUser = (user: UserProfile) => {
+    localStorage.removeItem('user_logged_out');
     localStorage.setItem('active_demo_user', JSON.stringify(user));
-    showToast('info', 'Active Account Switched', `Now logged in as ${user.full_name} (${user.email})`);
+    setCurrentUser(user);
+    setIsLoginModalOpen(false);
+    showToast('success', 'Signed In', `Logged in as ${user.full_name} (${user.email})`);
+  };
+
+  // 8. Handle Sign Out
+  const handleSignOut = () => {
+    setCurrentUser(null);
+    showToast('info', 'Signed Out', 'You have been signed out.');
   };
 
   return (
@@ -225,14 +239,48 @@ export default function DashboardPage() {
           setEditingTask(null);
           setIsTaskModalOpen(true);
         }}
-        onSwitchUser={handleSwitchUser}
+        onSwitchUser={handleSelectUser}
         allUsers={allUsers}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onSignOut={handleSignOut}
         systemHealth={systemHealth}
       />
 
       {/* Main Content Container */}
       <main style={{ flex: 1, maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '32px 28px' }}>
+        {/* Guest / Signed-Out Mode Callout Banner */}
+        {!currentUser && (
+          <div 
+            className="glass-panel animate-fade-in"
+            style={{
+              padding: '18px 24px',
+              marginBottom: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.12) 100%)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '3px' }}>
+                You are currently signed out (Guest Mode)
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Sign in with your Google / Gmail account to create, manage, and assign tasks with automated email dispatches.
+              </div>
+            </div>
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="btn-primary"
+              style={{ fontSize: '13px', padding: '10px 20px', whiteSpace: 'nowrap' }}
+            >
+              Sign In with Google
+            </button>
+          </div>
+        )}
+
         {/* Welcome Hero Banner */}
         <div style={{
           display: 'flex',
@@ -363,7 +411,7 @@ export default function DashboardPage() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onSelectUser={handleSwitchUser}
+        onSelectUser={handleSelectUser}
         allUsers={allUsers}
       />
 

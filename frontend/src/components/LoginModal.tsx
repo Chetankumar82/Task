@@ -7,10 +7,13 @@ import {
   CheckCircle2, 
   ShieldCheck, 
   ArrowRight, 
-  AlertCircle 
+  AlertCircle,
+  Mail,
+  UserPlus
 } from 'lucide-react';
 import { signInWithGoogle, isSupabaseConfigured } from '@/lib/supabase';
 import { UserProfile } from '@/lib/types';
+import { api } from '@/lib/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -27,6 +30,12 @@ export function LoginModal({
 }: LoginModalProps) {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // Custom Gmail Sign In Form state
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customEmail, setCustomEmail] = useState('');
+  const [isSubmittingCustom, setIsSubmittingCustom] = useState(false);
 
   if (!isOpen) return null;
 
@@ -42,6 +51,45 @@ export function LoginModal({
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'Google OAuth failed to initialize');
       setLoadingGoogle(false);
+    }
+  };
+
+  const handleCustomGmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customEmail.trim() || !customName.trim()) {
+      setErrorMessage('Please enter both your name and Gmail address.');
+      return;
+    }
+
+    if (!customEmail.includes('@')) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    setIsSubmittingCustom(true);
+    setErrorMessage('');
+
+    try {
+      const newProfile: UserProfile = {
+        id: `usr_${Date.now()}`,
+        email: customEmail.trim().toLowerCase(),
+        full_name: customName.trim(),
+        avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(customName.trim())}`,
+      };
+
+      // Sync with backend API
+      try {
+        await api.syncUserProfile(newProfile);
+      } catch {
+        // Continue even if local dev
+      }
+
+      onSelectUser(newProfile);
+      onClose();
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to register account.');
+    } finally {
+      setIsSubmittingCustom(false);
     }
   };
 
@@ -69,6 +117,8 @@ export function LoginModal({
           position: 'relative',
           border: '1px solid var(--border-medium)',
           boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.7)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
         }}
       >
         <button
@@ -89,7 +139,7 @@ export function LoginModal({
         </button>
 
         {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '22px' }}>
           <div style={{
             width: '48px',
             height: '48px',
@@ -107,7 +157,7 @@ export function LoginModal({
             Welcome to Hairdrama Tech
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Task Management &bull; Google OAuth 2.0 Authentication
+            Sign in with your Gmail account to manage and assign tasks
           </p>
         </div>
 
@@ -129,7 +179,7 @@ export function LoginModal({
           </div>
         )}
 
-        {/* Primary Action: Google OAuth Button */}
+        {/* Primary Action 1: Google OAuth Button */}
         <button
           onClick={handleGoogleLogin}
           disabled={loadingGoogle}
@@ -149,7 +199,7 @@ export function LoginModal({
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
-            marginBottom: '20px',
+            marginBottom: '14px',
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; }}
@@ -161,15 +211,104 @@ export function LoginModal({
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>{loadingGoogle ? 'Connecting to Google...' : 'Continue with Google (OAuth 2.0)'}</span>
+          <span>{loadingGoogle ? 'Connecting to Google OAuth...' : 'Continue with Google (OAuth 2.0)'}</span>
         </button>
+
+        {/* Option 2: Sign In with your own Gmail address */}
+        {!showCustomForm ? (
+          <button
+            onClick={() => setShowCustomForm(true)}
+            className="btn-secondary"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              fontSize: '13px',
+              padding: '10px 16px',
+              marginBottom: '18px',
+            }}
+          >
+            <Mail size={16} />
+            <span>Sign in with your Gmail address</span>
+          </button>
+        ) : (
+          <form 
+            onSubmit={handleCustomGmailSignIn}
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '10px',
+              padding: '16px',
+              marginBottom: '18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc', marginBottom: '2px' }}>
+              Sign In with Your Gmail
+            </div>
+            <input
+              type="text"
+              placeholder="Your Full Name (e.g. Chetan Kumar)"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: '#ffffff',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+            <input
+              type="email"
+              placeholder="Your Gmail (e.g. chetankumar8203@gmail.com)"
+              value={customEmail}
+              onChange={(e) => setCustomEmail(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: '#ffffff',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setShowCustomForm(false)}
+                className="btn-secondary"
+                style={{ flex: 1, fontSize: '12px', padding: '6px 12px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingCustom}
+                className="btn-primary"
+                style={{ flex: 2, fontSize: '12px', padding: '6px 12px', justifyContent: 'center' }}
+              >
+                <UserPlus size={14} />
+                <span>{isSubmittingCustom ? 'Signing in...' : 'Sign In Now'}</span>
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Divider */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          margin: '18px 0',
+          margin: '14px 0',
           color: 'var(--text-muted)',
           fontSize: '12px',
         }}>
@@ -180,7 +319,7 @@ export function LoginModal({
 
         {/* Demo Accounts List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-          {allUsers.map((u) => (
+          {allUsers.slice(0, 3).map((u) => (
             <button
               key={u.id}
               onClick={() => {
