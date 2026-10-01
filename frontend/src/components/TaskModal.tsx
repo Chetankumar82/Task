@@ -282,9 +282,10 @@ export function TaskModal({
                   fontSize: '13px',
                   outline: 'none',
                   cursor: 'pointer',
+                  colorScheme: 'dark',
                 }}
               >
-                <option value="" style={{ background: '#0f172a', color: '#94a3b8' }}>
+                <option value="" style={{ background: '#0f172a', color: '#cbd5e1' }}>
                   Unassigned
                 </option>
                 {users.map((u) => (

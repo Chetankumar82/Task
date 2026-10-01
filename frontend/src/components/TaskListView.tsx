@@ -47,12 +47,12 @@ export function TaskListView({
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.02)' }}>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600 }}>Task Title & Description</th>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600 }}>Priority</th>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600 }}>Assignee</th>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600 }}>Due Date</th>
-            <th style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Task Title & Description</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Status</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Priority</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Assignee</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Due Date</th>
+            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -69,18 +69,18 @@ export function TaskListView({
                   borderBottom: '1px solid var(--border-subtle)',
                   transition: 'background 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 {/* Title & Description */}
                 <td style={{ padding: '14px 18px', maxWidth: '320px' }}>
-                  <div style={{ fontWeight: 600, color: '#f8fafc', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
                     {task.title}
                   </div>
                   {task.description && (
                     <div style={{ 
                       fontSize: '12px', 
-                      color: 'var(--text-muted)', 
+                      color: '#cbd5e1', 
                       overflow: 'hidden', 
                       textOverflow: 'ellipsis', 
                       whiteSpace: 'nowrap' 
@@ -144,17 +144,17 @@ export function TaskListView({
                           task.assignee.full_name?.charAt(0) || 'U'
                         )}
                       </div>
-                      <span style={{ color: 'var(--text-primary)' }}>{task.assignee.full_name}</span>
+                      <span style={{ color: '#ffffff', fontWeight: 500 }}>{task.assignee.full_name}</span>
                     </div>
                   ) : (
-                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned</span>
+                    <span style={{ color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>Unassigned</span>
                   )}
                 </td>
 
                 {/* Due Date */}
-                <td style={{ padding: '14px 18px', color: 'var(--text-secondary)' }}>
+                <td style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 500 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={12} color="var(--text-muted)" />
+                    <Clock size={12} color="#818cf8" />
                     <span>{formattedDate}</span>
                   </div>
                 </td>

@@ -149,7 +149,7 @@ export function KanbanBoard({
                   textAlign: 'center',
                   border: '1px dashed var(--border-subtle)',
                   borderRadius: '12px',
-                  color: 'var(--text-muted)',
+                  color: '#cbd5e1',
                   fontSize: '12px',
                 }}>
                   No tasks in {col.title.toLowerCase()}

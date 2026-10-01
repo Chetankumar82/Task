@@ -167,7 +167,7 @@ export function LoginModal({
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>
             Hairdrama Tech Workspace
           </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '4px' }}>
             Sign in to manage and assign tasks with automated Gmail notifications
           </p>
         </div>
@@ -189,7 +189,7 @@ export function LoginModal({
               borderRadius: '8px',
               border: 'none',
               background: activeTab === 'google' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-              color: activeTab === 'google' ? '#ffffff' : 'var(--text-muted)',
+              color: activeTab === 'google' ? '#ffffff' : '#cbd5e1',
               fontWeight: 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -211,7 +211,7 @@ export function LoginModal({
               borderRadius: '8px',
               border: 'none',
               background: activeTab === 'demo' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-              color: activeTab === 'demo' ? '#ffffff' : 'var(--text-muted)',
+              color: activeTab === 'demo' ? '#ffffff' : '#cbd5e1',
               fontWeight: 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -409,7 +409,7 @@ export function LoginModal({
         {/* Tab 2: 1-Click Demo Reviewer Profiles */}
         {activeTab === 'demo' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+            <p style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
               Select a reviewer account to instantly explore task assignment and management:
             </p>
             {allUsers.slice(0, 3).map((u) => (
@@ -456,10 +456,10 @@ export function LoginModal({
                   </div>
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: 600 }}>{u.full_name}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.email}</div>
+                    <div style={{ fontSize: '11px', color: '#cbd5e1' }}>{u.email}</div>
                   </div>
                 </div>
-                <ChevronRight size={15} color="var(--text-muted)" />
+                <ChevronRight size={15} color="#cbd5e1" />
               </button>
             ))}
           </div>
@@ -474,7 +474,7 @@ export function LoginModal({
           alignItems: 'center',
           gap: '8px',
           fontSize: '11px',
-          color: 'var(--text-muted)',
+          color: '#cbd5e1',
         }}>
           <ShieldCheck size={15} color="#34d399" />
           <span>Real-time email dispatches via Gmail SMTP on task create &amp; complete.</span>

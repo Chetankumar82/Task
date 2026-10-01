@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Filter, LayoutGrid, List, X } from 'lucide-react';
-import { TaskPriority } from '@/lib/types';
+import { Search, Filter, LayoutGrid, List, BarChart2, X } from 'lucide-react';
 
 interface TaskFiltersProps {
   searchQuery: string;
@@ -11,8 +10,8 @@ interface TaskFiltersProps {
   onScopeFilterChange: (scope: string) => void;
   priorityFilter: string;
   onPriorityFilterChange: (priority: string) => void;
-  viewMode: 'kanban' | 'list';
-  onViewModeChange: (mode: 'kanban' | 'list') => void;
+  viewMode: 'kanban' | 'list' | 'analytics';
+  onViewModeChange: (mode: 'kanban' | 'list' | 'analytics') => void;
 }
 
 export function TaskFilters({
@@ -63,7 +62,7 @@ export function TaskFilters({
         }}>
           <Search 
             size={16} 
-            color="var(--text-muted)" 
+            color="#818cf8" 
             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} 
           />
           <input
@@ -73,7 +72,7 @@ export function TaskFilters({
             placeholder="Search tasks, descriptions..."
             style={{
               width: '100%',
-              background: 'rgba(255, 255, 255, 0.04)',
+              background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '8px 32px 8px 36px',
@@ -93,7 +92,7 @@ export function TaskFilters({
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
-                color: 'var(--text-muted)',
+                color: '#cbd5e1',
                 cursor: 'pointer',
               }}
             >
@@ -116,7 +115,7 @@ export function TaskFilters({
               onClick={() => onScopeFilterChange(s.id)}
               style={{
                 background: scopeFilter === s.id ? 'var(--primary)' : 'transparent',
-                color: scopeFilter === s.id ? '#ffffff' : 'var(--text-secondary)',
+                color: scopeFilter === s.id ? '#ffffff' : '#cbd5e1',
                 fontWeight: 600,
                 fontSize: '12px',
                 padding: '6px 12px',
@@ -136,7 +135,7 @@ export function TaskFilters({
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Priority Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Filter size={14} color="var(--text-muted)" />
+          <Filter size={14} color="#818cf8" />
           <select
             value={priorityFilter}
             onChange={(e) => onPriorityFilterChange(e.target.value)}
@@ -149,6 +148,7 @@ export function TaskFilters({
               fontSize: '12px',
               outline: 'none',
               cursor: 'pointer',
+              colorScheme: 'dark',
             }}
           >
             {priorities.map((p) => (
@@ -159,19 +159,20 @@ export function TaskFilters({
           </select>
         </div>
 
-        {/* View Switcher: Kanban vs List */}
+        {/* View Switcher: Kanban vs List vs Analytics */}
         <div style={{
           display: 'flex',
           background: 'rgba(255, 255, 255, 0.04)',
           borderRadius: '8px',
           padding: '3px',
           border: '1px solid var(--border-subtle)',
+          gap: '2px',
         }}>
           <button
             onClick={() => onViewModeChange('kanban')}
             style={{
-              background: viewMode === 'kanban' ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
-              color: viewMode === 'kanban' ? '#ffffff' : 'var(--text-muted)',
+              background: viewMode === 'kanban' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+              color: viewMode === 'kanban' ? '#ffffff' : '#cbd5e1',
               border: 'none',
               padding: '6px 10px',
               borderRadius: '6px',
@@ -180,17 +181,18 @@ export function TaskFilters({
               alignItems: 'center',
               gap: '6px',
               fontSize: '12px',
+              fontWeight: 600,
             }}
             title="Kanban Board View"
           >
-            <LayoutGrid size={15} />
+            <LayoutGrid size={14} color={viewMode === 'kanban' ? '#818cf8' : undefined} />
             <span>Board</span>
           </button>
           <button
             onClick={() => onViewModeChange('list')}
             style={{
-              background: viewMode === 'list' ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
-              color: viewMode === 'list' ? '#ffffff' : 'var(--text-muted)',
+              background: viewMode === 'list' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+              color: viewMode === 'list' ? '#ffffff' : '#cbd5e1',
               border: 'none',
               padding: '6px 10px',
               borderRadius: '6px',
@@ -199,11 +201,32 @@ export function TaskFilters({
               alignItems: 'center',
               gap: '6px',
               fontSize: '12px',
+              fontWeight: 600,
             }}
             title="Table List View"
           >
-            <List size={15} />
+            <List size={14} color={viewMode === 'list' ? '#818cf8' : undefined} />
             <span>List</span>
+          </button>
+          <button
+            onClick={() => onViewModeChange('analytics')}
+            style={{
+              background: viewMode === 'analytics' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+              color: viewMode === 'analytics' ? '#ffffff' : '#cbd5e1',
+              border: 'none',
+              padding: '6px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+            title="Visual Analytics & Charts"
+          >
+            <BarChart2 size={14} color={viewMode === 'analytics' ? '#818cf8' : undefined} />
+            <span>Analytics</span>
           </button>
         </div>
       </div>

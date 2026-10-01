@@ -100,7 +100,7 @@ export function Navbar({
                 Task Manager
               </span>
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
               Assignment &bull; Supabase + Flask + Next.js + Gmail OAuth
             </div>
           </div>
@@ -179,11 +179,11 @@ export function Navbar({
                   <span style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
                     {currentUser.full_name}
                   </span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
                     {currentUser.email}
                   </span>
                 </div>
-                <ChevronDown size={14} color="var(--text-muted)" />
+                <ChevronDown size={14} color="#cbd5e1" />
               </button>
 
               {/* Dropdown Menu */}
@@ -200,19 +200,19 @@ export function Navbar({
                   }}
                 >
                   <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
-                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#cbd5e1', fontWeight: 600 }}>
                       Logged in as
                     </div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', marginTop: '2px' }}>
                       {currentUser.full_name}
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
                       {currentUser.email}
                     </div>
                   </div>
 
                   {/* Switch User / Demo Accounts */}
-                  <div style={{ padding: '4px 10px', fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  <div style={{ padding: '4px 10px', fontSize: '11px', textTransform: 'uppercase', color: '#cbd5e1', fontWeight: 600 }}>
                     Switch Account (Reviewer Demo)
                   </div>
                   {allUsers.map((user) => (
@@ -349,23 +349,23 @@ export function Navbar({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Backend Engine:</span>
+              <span style={{ color: '#cbd5e1' }}>Backend Engine:</span>
               <span style={{ color: '#ffffff', fontWeight: 500 }}>Flask 3.1 (Python)</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Database:</span>
+              <span style={{ color: '#cbd5e1' }}>Database:</span>
               <span style={{ color: '#34d399', fontWeight: 500 }}>
                 {systemHealth.database.type === 'supabase_postgresql' ? 'Supabase PostgreSQL' : 'Local Data Layer (Dev)'}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Email Service:</span>
+              <span style={{ color: '#cbd5e1' }}>Email Service:</span>
               <span style={{ color: systemHealth.email_service.configured ? '#34d399' : '#fbbf24', fontWeight: 500 }}>
                 {systemHealth.email_service.configured ? 'Gmail SMTP (Active)' : 'Simulated SMTP (Console)'}
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Frontend:</span>
+              <span style={{ color: '#cbd5e1' }}>Frontend:</span>
               <span style={{ color: '#ffffff', fontWeight: 500 }}>Next.js 15 (TypeScript)</span>
             </div>
           </div>

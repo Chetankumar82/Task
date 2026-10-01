@@ -6,6 +6,7 @@ import { StatsCards } from '@/components/StatsCards';
 import { TaskFilters } from '@/components/TaskFilters';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { TaskListView } from '@/components/TaskListView';
+import { AnalyticsCharts } from '@/components/AnalyticsCharts';
 import { TaskModal } from '@/components/TaskModal';
 import { LoginModal } from '@/components/LoginModal';
 import { useToast } from '@/components/Toast';
@@ -41,9 +42,10 @@ export default function DashboardPage() {
 
   // Filters & View State
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [scopeFilter, setScopeFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'analytics'>('kanban');
 
   // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -124,7 +126,7 @@ export default function DashboardPage() {
     try {
       const [tasksData, statsData] = await Promise.all([
         api.getTasks({
-          status: 'all',
+          status: viewMode === 'analytics' ? 'all' : statusFilter,
           priority: priorityFilter,
           filter: scopeFilter,
           search: searchQuery,
@@ -140,7 +142,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [priorityFilter, scopeFilter, searchQuery, showToast]);
+  }, [viewMode, statusFilter, priorityFilter, scopeFilter, searchQuery, showToast]);
 
   useEffect(() => {
     if (currentUser) {
@@ -325,8 +327,125 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Dashboard Metric Overview Cards */}
-        <StatsCards stats={stats} />
+        {/* Dashboard Metric Overview Cards with interactive filter selection */}
+        <StatsCards 
+          stats={stats}
+          activeStatusFilter={statusFilter}
+          activeScopeFilter={scopeFilter}
+          onSelectFilter={(type, value) => {
+            if (type === 'status') {
+              setStatusFilter((prev) => prev === value ? 'all' : value);
+            } else if (type === 'scope') {
+              setScopeFilter((prev) => prev === value ? 'all' : value);
+            }
+          }}
+        />
+
+        {/* Active Filters Pill Bar (when filters applied) */}
+        {(statusFilter !== 'all' || priorityFilter !== 'all' || scopeFilter !== 'all' || searchQuery.trim() !== '') && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginBottom: '16px',
+            padding: '8px 14px',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            borderRadius: '10px',
+            fontSize: '12px',
+          }}>
+            <span style={{ color: '#c7d2fe', fontWeight: 600 }}>Active Filters:</span>
+            {statusFilter !== 'all' && (
+              <span style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}>
+                Status: <strong>{statusFilter.replace('_', ' ')}</strong>
+                <button 
+                  onClick={() => setStatusFilter('all')}
+                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
+                >&times;</button>
+              </span>
+            )}
+            {priorityFilter !== 'all' && (
+              <span style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}>
+                Priority: <strong>{priorityFilter}</strong>
+                <button 
+                  onClick={() => setPriorityFilter('all')}
+                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
+                >&times;</button>
+              </span>
+            )}
+            {scopeFilter !== 'all' && (
+              <span style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}>
+                Scope: <strong>{scopeFilter.replace('_', ' ')}</strong>
+                <button 
+                  onClick={() => setScopeFilter('all')}
+                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
+                >&times;</button>
+              </span>
+            )}
+            {searchQuery.trim() !== '' && (
+              <span style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}>
+                Search: &ldquo;{searchQuery}&rdquo;
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
+                >&times;</button>
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setStatusFilter('all');
+                setPriorityFilter('all');
+                setScopeFilter('all');
+                setSearchQuery('');
+              }}
+              style={{
+                marginLeft: 'auto',
+                background: 'none',
+                border: 'none',
+                color: '#818cf8',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '11px',
+                textDecoration: 'underline',
+              }}
+            >
+              Reset all filters
+            </button>
+          </div>
+        )}
 
         {/* Filters & Search Toolbar */}
         <TaskFilters
@@ -340,12 +459,12 @@ export default function DashboardPage() {
           onViewModeChange={setViewMode}
         />
 
-        {/* Task Board / List Display */}
+        {/* Task Board / List / Analytics Display */}
         {isLoading && tasks.length === 0 ? (
           <div style={{
             padding: '60px',
             textAlign: 'center',
-            color: 'var(--text-muted)',
+            color: '#cbd5e1',
             fontSize: '14px',
           }}>
             <RefreshCw size={24} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 12px' }} />
@@ -366,7 +485,7 @@ export default function DashboardPage() {
             }}
             currentUserId={currentUser?.id}
           />
-        ) : (
+        ) : viewMode === 'list' ? (
           <TaskListView
             tasks={tasks}
             onStatusChange={handleStatusChange}
@@ -376,6 +495,20 @@ export default function DashboardPage() {
             }}
             onDelete={handleDeleteTask}
             currentUserId={currentUser?.id}
+          />
+        ) : (
+          <AnalyticsCharts
+            tasks={tasks}
+            stats={stats}
+            allUsers={allUsers}
+            onFilterByStatus={(st) => {
+              setStatusFilter(st);
+              setViewMode('kanban');
+            }}
+            onFilterByPriority={(pr) => {
+              setPriorityFilter(pr);
+              setViewMode('kanban');
+            }}
           />
         )}
       </main>

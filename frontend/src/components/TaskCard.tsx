@@ -42,22 +42,13 @@ export function TaskCard({
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel interactive-card"
       style={{
         padding: '16px',
         marginBottom: '12px',
         position: 'relative',
-        transition: 'transform 0.15s ease, border-color 0.15s ease',
         cursor: 'default',
         border: '1px solid var(--border-subtle)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        e.currentTarget.style.transform = 'translateY(-2px)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-        e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
       {/* Top Header: Priority Badge + Edit/Delete Actions */}
@@ -129,8 +120,8 @@ export function TaskCard({
       {task.description && (
         <p style={{
           fontSize: '12px',
-          color: 'var(--text-muted)',
-          lineHeight: 1.4,
+          color: '#cbd5e1',
+          lineHeight: 1.5,
           marginBottom: '14px',
           display: '-webkit-box',
           WebkitLineClamp: 2,
@@ -148,11 +139,11 @@ export function TaskCard({
           alignItems: 'center', 
           gap: '6px', 
           fontSize: '11px', 
-          color: isOverdue ? '#f87171' : 'var(--text-muted)',
+          color: isOverdue ? '#fca5a5' : '#cbd5e1',
           marginBottom: '12px',
-          fontWeight: isOverdue ? 600 : 400
+          fontWeight: isOverdue ? 600 : 500
         }}>
-          <Clock size={12} />
+          <Clock size={12} color={isOverdue ? '#f87171' : '#818cf8'} />
           <span>Due {formattedDueDate}</span>
           {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px' }}>(Overdue)</span>}
         </div>
@@ -195,7 +186,7 @@ export function TaskCard({
               </span>
             </div>
           ) : (
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>
               Unassigned
             </span>
           )}
