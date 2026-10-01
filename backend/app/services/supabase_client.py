@@ -1,5 +1,6 @@
 import logging
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import psycopg2
@@ -8,7 +9,6 @@ from app.config import Config
 
 logger = logging.getLogger(__name__)
 
-# Real Supabase Client Initialization (if URL & API key exist)
 supabase_client = None
 
 if Config.SUPABASE_URL and (Config.SUPABASE_SERVICE_ROLE_KEY or Config.SUPABASE_KEY):
@@ -21,16 +21,27 @@ if Config.SUPABASE_URL and (Config.SUPABASE_SERVICE_ROLE_KEY or Config.SUPABASE_
 
 
 def get_db_connection():
-    """Returns a direct PostgreSQL connection to Supabase if DATABASE_URL is configured."""
     if Config.DATABASE_URL:
         try:
             return psycopg2.connect(Config.DATABASE_URL)
         except Exception as e:
-            logger.error("Failed to connect to Supabase PostgreSQL: %s", e)
+            logger.error("Failed to connect to PostgreSQL: %s", e)
     return None
 
 
-# Seed default profiles in database if empty
+@contextmanager
+def get_db():
+    """Managed PostgreSQL database connection with auto-cleanup."""
+    conn = get_db_connection()
+    if not conn:
+        yield None
+        return
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
 def ensure_default_seed(conn):
     try:
         with conn.cursor() as cur:
@@ -71,14 +82,12 @@ def ensure_default_seed(conn):
         logger.warning("Could not auto-seed demo profiles: %s", e)
 
 
-# Check connection on startup
-init_conn = get_db_connection()
-if init_conn:
-    logger.info("Successfully connected to live Supabase PostgreSQL database!")
-    ensure_default_seed(init_conn)
-    init_conn.close()
-else:
-    logger.warning("DATABASE_URL not configured. Using local fallback.")
+with get_db() as init_conn:
+    if init_conn:
+        logger.info("Successfully connected to live Supabase PostgreSQL database!")
+        ensure_default_seed(init_conn)
+    else:
+        logger.warning("DATABASE_URL not configured. Using local fallback.")
 
 
 class MockDataStore:
@@ -113,7 +122,7 @@ class MockDataStore:
             "task_demo_1": {
                 "id": "task_demo_1",
                 "title": "Design Hairdrama Brand Color Palette & UI Tokens",
-                "description": "Establish high-contrast modern luxury palette for autumn release.",
+                "description": "Establish high-contrast modern palette for autumn release.",
                 "status": "completed",
                 "priority": "high",
                 "due_date": "2026-10-05",
@@ -147,49 +156,42 @@ class DatabaseService:
     # ---------------- Profiles ----------------
     @staticmethod
     def get_all_profiles() -> List[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute("SELECT * FROM public.profiles ORDER BY full_name ASC;")
-                    rows = cur.fetchall()
-                    return [dict(r) for r in rows]
-            except Exception as e:
-                logger.error("Error querying profiles from Postgres: %s", e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        cur.execute("SELECT * FROM public.profiles ORDER BY full_name ASC;")
+                        return [dict(r) for r in cur.fetchall()]
+                except Exception as e:
+                    logger.error("Error querying profiles: %s", e)
         return list(mock_store.profiles.values())
 
     @staticmethod
     def get_profile_by_id(profile_id: str) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute("SELECT * FROM public.profiles WHERE id = %s;", (profile_id,))
-                    row = cur.fetchone()
-                    if row:
-                        return dict(row)
-            except Exception as e:
-                logger.error("Error querying profile %s: %s", profile_id, e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        cur.execute("SELECT * FROM public.profiles WHERE id = %s;", (profile_id,))
+                        row = cur.fetchone()
+                        if row:
+                            return dict(row)
+                except Exception as e:
+                    logger.error("Error querying profile %s: %s", profile_id, e)
         return mock_store.profiles.get(profile_id)
 
     @staticmethod
     def get_profile_by_email(email: str) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    cur.execute("SELECT * FROM public.profiles WHERE LOWER(email) = LOWER(%s);", (email,))
-                    row = cur.fetchone()
-                    if row:
-                        return dict(row)
-            except Exception as e:
-                logger.error("Error querying profile by email: %s", e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        cur.execute("SELECT * FROM public.profiles WHERE LOWER(email) = LOWER(%s);", (email,))
+                        row = cur.fetchone()
+                        if row:
+                            return dict(row)
+                except Exception as e:
+                    logger.error("Error querying profile by email: %s", e)
         for p in mock_store.profiles.values():
             if p.get("email", "").lower() == email.lower():
                 return p
@@ -202,47 +204,44 @@ class DatabaseService:
         full_name = profile_data.get("full_name") or email.split("@")[0]
         avatar_url = profile_data.get("avatar_url", "")
 
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    # Check if a profile with this email already exists
-                    cur.execute("SELECT id FROM public.profiles WHERE LOWER(email) = LOWER(%s);", (email,))
-                    existing = cur.fetchone()
-                    if existing:
-                        cur.execute(
-                            """
-                            UPDATE public.profiles
-                            SET full_name = COALESCE(NULLIF(%s, ''), full_name),
-                                avatar_url = COALESCE(NULLIF(%s, ''), avatar_url),
-                                updated_at = timezone('utc'::text, now())
-                            WHERE id = %s
-                            RETURNING *;
-                            """,
-                            (full_name, avatar_url, existing["id"])
-                        )
-                    else:
-                        cur.execute(
-                            """
-                            INSERT INTO public.profiles (id, email, full_name, avatar_url, updated_at)
-                            VALUES (%s, %s, %s, %s, timezone('utc'::text, now()))
-                            ON CONFLICT (id) DO UPDATE
-                            SET full_name = EXCLUDED.full_name,
-                                avatar_url = EXCLUDED.avatar_url,
-                                email = EXCLUDED.email,
-                                updated_at = timezone('utc'::text, now())
-                            RETURNING *;
-                            """,
-                            (profile_id, email, full_name, avatar_url),
-                        )
-                    conn.commit()
-                    row = cur.fetchone()
-                    if row:
-                        return dict(row)
-            except Exception as e:
-                logger.error("Error upserting profile in Postgres: %s", e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        cur.execute("SELECT id FROM public.profiles WHERE LOWER(email) = LOWER(%s);", (email,))
+                        existing = cur.fetchone()
+                        if existing:
+                            cur.execute(
+                                """
+                                UPDATE public.profiles
+                                SET full_name = COALESCE(NULLIF(%s, ''), full_name),
+                                    avatar_url = COALESCE(NULLIF(%s, ''), avatar_url),
+                                    updated_at = timezone('utc'::text, now())
+                                WHERE id = %s
+                                RETURNING *;
+                                """,
+                                (full_name, avatar_url, existing["id"])
+                            )
+                        else:
+                            cur.execute(
+                                """
+                                INSERT INTO public.profiles (id, email, full_name, avatar_url, updated_at)
+                                VALUES (%s, %s, %s, %s, timezone('utc'::text, now()))
+                                ON CONFLICT (id) DO UPDATE
+                                SET full_name = EXCLUDED.full_name,
+                                    avatar_url = EXCLUDED.avatar_url,
+                                    email = EXCLUDED.email,
+                                    updated_at = timezone('utc'::text, now())
+                                RETURNING *;
+                                """,
+                                (profile_id, email, full_name, avatar_url),
+                            )
+                        conn.commit()
+                        row = cur.fetchone()
+                        if row:
+                            return dict(row)
+                except Exception as e:
+                    logger.error("Error upserting profile: %s", e)
 
         clean_profile = {
             "id": profile_id,
@@ -290,51 +289,49 @@ class DatabaseService:
         filter_type: Optional[str] = None,
         search: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    query = """
-                    SELECT 
-                        t.id, t.title, t.description, t.status, t.priority, t.due_date, t.created_at, t.updated_at,
-                        t.created_by,
-                        c.email as creator_email, c.full_name as creator_name, c.avatar_url as creator_avatar,
-                        t.assigned_to,
-                        a.email as assignee_email, a.full_name as assignee_name, a.avatar_url as assignee_avatar
-                    FROM public.tasks t
-                    LEFT JOIN public.profiles c ON t.created_by = c.id
-                    LEFT JOIN public.profiles a ON t.assigned_to = a.id
-                    WHERE 1=1
-                    """
-                    params = []
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        query = """
+                        SELECT 
+                            t.id, t.title, t.description, t.status, t.priority, t.due_date, t.created_at, t.updated_at,
+                            t.created_by,
+                            c.email as creator_email, c.full_name as creator_name, c.avatar_url as creator_avatar,
+                            t.assigned_to,
+                            a.email as assignee_email, a.full_name as assignee_name, a.avatar_url as assignee_avatar
+                        FROM public.tasks t
+                        LEFT JOIN public.profiles c ON t.created_by = c.id
+                        LEFT JOIN public.profiles a ON t.assigned_to = a.id
+                        WHERE 1=1
+                        """
+                        params = []
 
-                    if status and status != "all":
-                        query += " AND t.status = %s"
-                        params.append(status)
-                    if priority and priority != "all":
-                        query += " AND t.priority = %s"
-                        params.append(priority)
-                    if filter_type == "assigned_to_me" and user_id:
-                        query += " AND t.assigned_to = %s"
-                        params.append(user_id)
-                    elif filter_type == "created_by_me" and user_id:
-                        query += " AND t.created_by = %s"
-                        params.append(user_id)
-                    if search:
-                        query += " AND (LOWER(t.title) LIKE %s OR LOWER(t.description) LIKE %s)"
-                        term = f"%{search.lower()}%"
-                        params.extend([term, term])
+                        if status and status != "all":
+                            query += " AND t.status = %s"
+                            params.append(status)
+                        if priority and priority != "all":
+                            query += " AND t.priority = %s"
+                            params.append(priority)
+                        if filter_type == "assigned_to_me" and user_id:
+                            query += " AND t.assigned_to = %s"
+                            params.append(user_id)
+                        elif filter_type == "created_by_me" and user_id:
+                            query += " AND t.created_by = %s"
+                            params.append(user_id)
+                        if search:
+                            query += " AND (LOWER(t.title) LIKE %s OR LOWER(t.description) LIKE %s)"
+                            term = f"%{search.lower()}%"
+                            params.extend([term, term])
 
-                    query += " ORDER BY t.created_at DESC;"
-                    cur.execute(query, tuple(params))
-                    rows = cur.fetchall()
-                    return [DatabaseService._format_task_row(dict(r)) for r in rows]
-            except Exception as e:
-                logger.error("Error querying tasks from Postgres: %s", e)
-            finally:
-                conn.close()
+                        query += " ORDER BY t.created_at DESC;"
+                        cur.execute(query, tuple(params))
+                        rows = cur.fetchall()
+                        return [DatabaseService._format_task_row(dict(r)) for r in rows]
+                except Exception as e:
+                    logger.error("Error querying tasks: %s", e)
 
-        # Fallback to mock store
+        # In-memory fallback
         results = []
         for t in mock_store.tasks.values():
             if status and status != "all" and t.get("status") != status:
@@ -360,30 +357,28 @@ class DatabaseService:
 
     @staticmethod
     def get_task_by_id(task_id: str) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                    query = """
-                    SELECT 
-                        t.id, t.title, t.description, t.status, t.priority, t.due_date, t.created_at, t.updated_at,
-                        t.created_by,
-                        c.email as creator_email, c.full_name as creator_name, c.avatar_url as creator_avatar,
-                        t.assigned_to,
-                        a.email as assignee_email, a.full_name as assignee_name, a.avatar_url as assignee_avatar
-                    FROM public.tasks t
-                    LEFT JOIN public.profiles c ON t.created_by = c.id
-                    LEFT JOIN public.profiles a ON t.assigned_to = a.id
-                    WHERE t.id = %s;
-                    """
-                    cur.execute(query, (task_id,))
-                    row = cur.fetchone()
-                    if row:
-                        return DatabaseService._format_task_row(dict(row))
-            except Exception as e:
-                logger.error("Error fetching task %s: %s", task_id, e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                        query = """
+                        SELECT 
+                            t.id, t.title, t.description, t.status, t.priority, t.due_date, t.created_at, t.updated_at,
+                            t.created_by,
+                            c.email as creator_email, c.full_name as creator_name, c.avatar_url as creator_avatar,
+                            t.assigned_to,
+                            a.email as assignee_email, a.full_name as assignee_name, a.avatar_url as assignee_avatar
+                        FROM public.tasks t
+                        LEFT JOIN public.profiles c ON t.created_by = c.id
+                        LEFT JOIN public.profiles a ON t.assigned_to = a.id
+                        WHERE t.id = %s;
+                        """
+                        cur.execute(query, (task_id,))
+                        row = cur.fetchone()
+                        if row:
+                            return DatabaseService._format_task_row(dict(row))
+                except Exception as e:
+                    logger.error("Error fetching task %s: %s", task_id, e)
 
         if task_id in mock_store.tasks:
             t = dict(mock_store.tasks[task_id])
@@ -403,23 +398,21 @@ class DatabaseService:
         created_by = data.get("created_by")
         assigned_to = data.get("assigned_to") or None
 
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        """
-                        INSERT INTO public.tasks (id, title, description, status, priority, due_date, created_by, assigned_to)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-                        """,
-                        (task_id, title, description, status, priority, due_date, created_by, assigned_to),
-                    )
-                    conn.commit()
-                return DatabaseService.get_task_by_id(task_id)
-            except Exception as e:
-                logger.error("Error inserting task into Postgres: %s", e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            """
+                            INSERT INTO public.tasks (id, title, description, status, priority, due_date, created_by, assigned_to)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                            """,
+                            (task_id, title, description, status, priority, due_date, created_by, assigned_to),
+                        )
+                        conn.commit()
+                    return DatabaseService.get_task_by_id(task_id)
+                except Exception as e:
+                    logger.error("Error inserting task: %s", e)
 
         record = {
             "id": task_id,
@@ -438,29 +431,27 @@ class DatabaseService:
 
     @staticmethod
     def update_task(task_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor() as cur:
-                    allowed = ["title", "description", "status", "priority", "due_date", "assigned_to"]
-                    set_clauses = []
-                    params = []
-                    for k, v in updates.items():
-                        if k in allowed:
-                            set_clauses.append(f"{k} = %s")
-                            params.append(v if v != "" else None)
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor() as cur:
+                        allowed = ["title", "description", "status", "priority", "due_date", "assigned_to"]
+                        set_clauses = []
+                        params = []
+                        for k, v in updates.items():
+                            if k in allowed:
+                                set_clauses.append(f"{k} = %s")
+                                params.append(v if v != "" else None)
 
-                    if set_clauses:
-                        set_clauses.append("updated_at = timezone('utc'::text, now())")
-                        params.append(task_id)
-                        query = f"UPDATE public.tasks SET {', '.join(set_clauses)} WHERE id = %s;"
-                        cur.execute(query, tuple(params))
-                        conn.commit()
-                return DatabaseService.get_task_by_id(task_id)
-            except Exception as e:
-                logger.error("Error updating task in Postgres: %s", e)
-            finally:
-                conn.close()
+                        if set_clauses:
+                            set_clauses.append("updated_at = timezone('utc'::text, now())")
+                            params.append(task_id)
+                            query = f"UPDATE public.tasks SET {', '.join(set_clauses)} WHERE id = %s;"
+                            cur.execute(query, tuple(params))
+                            conn.commit()
+                    return DatabaseService.get_task_by_id(task_id)
+                except Exception as e:
+                    logger.error("Error updating task: %s", e)
 
         if task_id in mock_store.tasks:
             mock_store.tasks[task_id].update(updates)
@@ -470,17 +461,15 @@ class DatabaseService:
 
     @staticmethod
     def delete_task(task_id: str) -> bool:
-        conn = get_db_connection()
-        if conn:
-            try:
-                with conn.cursor() as cur:
-                    cur.execute("DELETE FROM public.tasks WHERE id = %s;", (task_id,))
-                    conn.commit()
-                    return cur.rowcount > 0
-            except Exception as e:
-                logger.error("Error deleting task in Postgres: %s", e)
-            finally:
-                conn.close()
+        with get_db() as conn:
+            if conn:
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute("DELETE FROM public.tasks WHERE id = %s;", (task_id,))
+                        conn.commit()
+                        return cur.rowcount > 0
+                except Exception as e:
+                    logger.error("Error deleting task: %s", e)
 
         if task_id in mock_store.tasks:
             del mock_store.tasks[task_id]

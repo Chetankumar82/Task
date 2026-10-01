@@ -9,6 +9,8 @@ import { AnalyticsCharts } from '@/components/AnalyticsCharts';
 import { TeamView } from '@/components/TeamView';
 import { TaskModal } from '@/components/TaskModal';
 import { LoginModal } from '@/components/LoginModal';
+import { ActiveFiltersBar } from '@/components/ActiveFiltersBar';
+import { RecentTasksFeed } from '@/components/RecentTasksFeed';
 import { useToast } from '@/components/Toast';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
@@ -27,15 +29,11 @@ import {
   Search, 
   Filter, 
   X,
-  ChevronRight,
-  ShieldCheck,
   LayoutDashboard,
   Kanban,
   ListTodo,
   BarChart3,
   Users,
-  Clock,
-  ArrowRight,
   Menu
 } from 'lucide-react';
 
@@ -470,114 +468,24 @@ export default function DashboardPage() {
 
         {/* Content Body */}
         <main className="main-canvas" style={{ flex: 1, padding: '28px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
-          {/* Active Filters Pill Bar (shown only on Board and List View when filters applied) */}
-          {(currentTab === 'kanban' || currentTab === 'list') && (statusFilter !== 'all' || priorityFilter !== 'all' || scopeFilter !== 'all' || searchQuery.trim() !== '') && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              flexWrap: 'wrap',
-              marginBottom: '20px',
-              padding: '8px 14px',
-              background: 'rgba(99, 102, 241, 0.08)',
-              border: '1px solid rgba(99, 102, 241, 0.25)',
-              borderRadius: '10px',
-              fontSize: '12px',
-            }}>
-              <span style={{ color: 'var(--primary)', fontWeight: 700 }}>Active Filters:</span>
-              {statusFilter !== 'all' && (
-                <span style={{
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}>
-                  Status: <strong>{statusFilter.replace('_', ' ')}</strong>
-                  <button 
-                    onClick={() => setStatusFilter('all')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
-                  >&times;</button>
-                </span>
-              )}
-              {priorityFilter !== 'all' && (
-                <span style={{
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}>
-                  Priority: <strong>{priorityFilter}</strong>
-                  <button 
-                    onClick={() => setPriorityFilter('all')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
-                  >&times;</button>
-                </span>
-              )}
-              {scopeFilter !== 'all' && (
-                <span style={{
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}>
-                  Scope: <strong>{scopeFilter.replace('_', ' ')}</strong>
-                  <button 
-                    onClick={() => setScopeFilter('all')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
-                  >&times;</button>
-                </span>
-              )}
-              {searchQuery.trim() !== '' && (
-                <span style={{
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}>
-                  Search: &ldquo;{searchQuery}&rdquo;
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
-                  >&times;</button>
-                </span>
-              )}
-              <button
-                onClick={() => {
-                  setStatusFilter('all');
-                  setPriorityFilter('all');
-                  setScopeFilter('all');
-                  setSearchQuery('');
-                }}
-                style={{
-                  marginLeft: 'auto',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--primary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '11px',
-                  textDecoration: 'underline',
-                }}
-              >
-                Reset all filters
-              </button>
-            </div>
+          {/* Active Filters Bar */}
+          {(currentTab === 'kanban' || currentTab === 'list') && (
+            <ActiveFiltersBar
+              status={statusFilter}
+              priority={priorityFilter}
+              scope={scopeFilter}
+              search={searchQuery}
+              onClearStatus={() => setStatusFilter('all')}
+              onClearPriority={() => setPriorityFilter('all')}
+              onClearScope={() => setScopeFilter('all')}
+              onClearSearch={() => setSearchQuery('')}
+              onClearAll={() => {
+                setStatusFilter('all');
+                setPriorityFilter('all');
+                setScopeFilter('all');
+                setSearchQuery('');
+              }}
+            />
           )}
 
           {/* Overview View */}
@@ -614,108 +522,15 @@ export default function DashboardPage() {
                 }}
               />
 
-              {/* Recent Tasks Preview */}
-              <div className="glass-panel" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Recent Tasks
-                  </h3>
-                  <button
-                    onClick={() => setCurrentTab('kanban')}
-                    className="btn-secondary"
-                    style={{ fontSize: '12px', padding: '6px 12px' }}
-                  >
-                    <span>View Board</span>
-                    <ArrowRight size={13} />
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {tasks.length > 0 ? (
-                    tasks.slice(0, 5).map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => {
-                          setEditingTask(t);
-                          setIsTaskModalOpen(true);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          background: 'var(--surface-card-hover)',
-                          border: '1px solid var(--border-subtle)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--border-medium)';
-                          e.currentTarget.style.transform = 'translateX(2px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.transform = 'translateX(0)';
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-                          <span 
-                            className={`badge-status-${t.status.replace('_', '')}`} 
-                            style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize', flexShrink: 0 }}
-                          >
-                            {t.status.replace('_', ' ')}
-                          </span>
-                          <span 
-                            className={`badge-priority-${t.priority}`}
-                            style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', flexShrink: 0 }}
-                          >
-                            {t.priority}
-                          </span>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {t.title}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                          {t.assignee ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <div style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '50%',
-                                background: '#475569',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '9px',
-                                fontWeight: 600,
-                                color: '#ffffff',
-                              }}>
-                                {t.assignee.avatar_url ? (
-                                  <img src={t.assignee.avatar_url} alt="" style={{ width: '100%', height: '100%' }} />
-                                ) : (
-                                  t.assignee.full_name?.charAt(0) || 'U'
-                                )}
-                              </div>
-                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                                {t.assignee.full_name?.split(' ')[0]}
-                              </span>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Unassigned</span>
-                          )}
-                          <ChevronRight size={14} color="var(--text-muted)" />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                      No tasks created yet. Click "+ Create Task" to get started.
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Recent Tasks */}
+              <RecentTasksFeed
+                tasks={tasks}
+                onSelectTask={(t) => {
+                  setEditingTask(t);
+                  setIsTaskModalOpen(true);
+                }}
+                onViewBoard={() => setCurrentTab('kanban')}
+              />
             </div>
           )}
 
