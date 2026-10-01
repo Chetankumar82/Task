@@ -1,15 +1,12 @@
 """
-Comprehensive End-to-End Test Suite for Hairdrama Tech Task Management.
-Tests every scenario against live Supabase PostgreSQL and Gmail SMTP.
+End-to-End Test Suite for Hairdrama Task Management.
+Validates workflows against live Supabase PostgreSQL and Gmail SMTP.
 """
 
 import unittest
 import json
-import time
 from app import create_app
 from app.config import Config
-from app.services.supabase_client import DatabaseService
-from app.services.email_service import GmailService
 
 
 class EndToEndFullScenariosTestCase(unittest.TestCase):
@@ -18,7 +15,6 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         cls.app = create_app()
         cls.client = cls.app.test_client()
 
-        # Test users
         cls.user_a = {
             "id": "11111111-1111-4111-a111-111111111111",
             "email": "sarah.pm@gmail.com",
@@ -51,11 +47,8 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
             "Content-Type": "application/json"
         }
 
-    # ==========================================
-    # SCENARIO 1: Health & Infrastructure Check
-    # ==========================================
     def test_scenario_01_infrastructure_health(self):
-        """Scenario 1: Verify API health, Supabase DB connection, and Gmail SMTP status."""
+        """Verify API health, Supabase DB connection, and Gmail SMTP status."""
         res = self.client.get("/api/health")
         self.assertEqual(res.status_code, 200)
         data = res.get_json()
@@ -64,14 +57,9 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         self.assertEqual(data["database"]["type"], "supabase_postgresql")
         self.assertTrue(data["email_service"]["configured"])
         self.assertEqual(data["email_service"]["provider"], "gmail_smtp")
-        print("\n[SCENARIO 1 PASS] Infrastructure: Supabase PostgreSQL connected, Gmail SMTP configured.")
 
-    # ==========================================
-    # SCENARIO 2: User Account Sync & Directory
-    # ==========================================
     def test_scenario_02_user_sync_and_directory(self):
-        """Scenario 2: Sync Google OAuth / Gmail user profile and verify directory listing."""
-        # 1. Sync User C (Chetan)
+        """Sync user profile and verify directory listing."""
         sync_res = self.client.post(
             "/api/users/sync",
             headers=self.auth_headers_c,
@@ -81,24 +69,19 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         synced_user = sync_res.get_json()["data"]
         self.assertEqual(synced_user["email"], self.user_c["email"])
 
-        # 2. Fetch users list
         users_res = self.client.get("/api/users", headers=self.auth_headers_c)
         self.assertEqual(users_res.status_code, 200)
         users = users_res.get_json()["data"]
         self.assertTrue(any(u["email"] == self.user_c["email"] for u in users))
-        print(f"\n[SCENARIO 2 PASS] User profile synchronized and retrieved from directory ({len(users)} users active).")
 
-    # ==========================================
-    # SCENARIO 3: Task Creation & Assignment
-    # ==========================================
     def test_scenario_03_task_creation_and_assignment(self):
-        """Scenario 3: User creates a task and assigns it to another user (triggers assignment email)."""
+        """User creates a task and assigns it to another user (triggers assignment email)."""
         payload = {
             "title": "E2E Test: Deliverable Review",
-            "description": "Comprehensive validation of task lifecycle and email integration.",
+            "description": "Validation of task lifecycle and email integration.",
             "priority": "urgent",
             "due_date": "2026-10-15",
-            "assigned_to": self.user_c["id"]  # Assigned to Chetan Kumar
+            "assigned_to": self.user_c["id"]
         }
         res = self.client.post("/api/tasks", headers=self.auth_headers_a, data=json.dumps(payload))
         self.assertEqual(res.status_code, 201)
@@ -108,43 +91,29 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         self.assertEqual(task["status"], "pending")
         self.assertEqual(task["assigned_to"], self.user_c["id"])
         self.assertEqual(task["created_by"], self.user_a["id"])
-        print(f"\n[SCENARIO 3 PASS] Task '{task['title']}' created by Sarah and assigned to Chetan (id: {task['id']}).")
-        return task["id"]
 
-    # ==========================================
-    # SCENARIO 4: Filtering, Searching & Querying
-    # ==========================================
     def test_scenario_04_filtering_and_querying(self):
-        """Scenario 4: Filter tasks by status, priority, search keywords, and assignee."""
-        # 1. Fetch all
+        """Filter tasks by status, priority, search keywords, and assignee."""
         res_all = self.client.get("/api/tasks", headers=self.auth_headers_a)
         self.assertEqual(res_all.status_code, 200)
         all_tasks = res_all.get_json()["data"]
         self.assertIsInstance(all_tasks, list)
 
-        # 2. Filter by status
         res_pending = self.client.get("/api/tasks?status=pending", headers=self.auth_headers_a)
         self.assertEqual(res_pending.status_code, 200)
         for t in res_pending.get_json()["data"]:
             self.assertEqual(t["status"], "pending")
 
-        # 3. Filter by priority
         res_urgent = self.client.get("/api/tasks?priority=urgent", headers=self.auth_headers_a)
         self.assertEqual(res_urgent.status_code, 200)
         for t in res_urgent.get_json()["data"]:
             self.assertEqual(t["priority"], "urgent")
 
-        # 4. Search query
         res_search = self.client.get("/api/tasks?search=E2E", headers=self.auth_headers_a)
         self.assertEqual(res_search.status_code, 200)
-        print(f"\n[SCENARIO 4 PASS] Task filtering and full-text search operational.")
 
-    # ==========================================
-    # SCENARIO 5: Status Transitions & Completion
-    # ==========================================
     def test_scenario_05_status_transitions_and_completion_email(self):
-        """Scenario 5: Transition pending -> in_progress -> completed (triggers completion email)."""
-        # Create a task for testing completion
+        """Transition pending -> in_progress -> completed (triggers completion email)."""
         create_res = self.client.post(
             "/api/tasks",
             headers=self.auth_headers_a,
@@ -158,7 +127,7 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         self.assertEqual(create_res.status_code, 201)
         task_id = create_res.get_json()["data"]["id"]
 
-        # Step 1: Move to in_progress
+        # Move to in_progress
         res_prog = self.client.patch(
             f"/api/tasks/{task_id}",
             headers=self.auth_headers_c,
@@ -167,7 +136,7 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         self.assertEqual(res_prog.status_code, 200)
         self.assertEqual(res_prog.get_json()["data"]["status"], "in_progress")
 
-        # Step 2: Move to completed (triggers completion email)
+        # Move to completed
         res_comp = self.client.patch(
             f"/api/tasks/{task_id}",
             headers=self.auth_headers_c,
@@ -175,13 +144,9 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         )
         self.assertEqual(res_comp.status_code, 200)
         self.assertEqual(res_comp.get_json()["data"]["status"], "completed")
-        print(f"\n[SCENARIO 5 PASS] Task lifecycle transition (pending -> in_progress -> completed) verified.")
 
-    # ==========================================
-    # SCENARIO 6: Task Reassignment
-    # ==========================================
     def test_scenario_06_task_reassignment(self):
-        """Scenario 6: Update task to reassign to a new team member."""
+        """Update task to reassign to a new team member."""
         create_res = self.client.post(
             "/api/tasks",
             headers=self.auth_headers_a,
@@ -193,7 +158,6 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         )
         task_id = create_res.get_json()["data"]["id"]
 
-        # Reassign to User C
         update_res = self.client.patch(
             f"/api/tasks/{task_id}",
             headers=self.auth_headers_a,
@@ -201,13 +165,9 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         )
         self.assertEqual(update_res.status_code, 200)
         self.assertEqual(update_res.get_json()["data"]["assigned_to"], self.user_c["id"])
-        print(f"\n[SCENARIO 6 PASS] Task successfully reassigned to new member.")
 
-    # ==========================================
-    # SCENARIO 7: Dashboard Analytics / Stats
-    # ==========================================
     def test_scenario_07_dashboard_stats(self):
-        """Scenario 7: Verify dashboard summary statistics calculation."""
+        """Verify dashboard summary statistics calculation."""
         res = self.client.get("/api/stats", headers=self.auth_headers_a)
         self.assertEqual(res.status_code, 200)
         stats = res.get_json()["data"]
@@ -218,22 +178,16 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         self.assertIn("assigned_to_me", stats)
         self.assertIn("created_by_me", stats)
         self.assertGreaterEqual(stats["total_tasks"], 1)
-        print(f"\n[SCENARIO 7 PASS] Stats aggregation verified: total={stats['total_tasks']}, completed={stats['completed_tasks']}.")
 
-    # ==========================================
-    # SCENARIO 8: Security & Authorization Access
-    # ==========================================
     def test_scenario_08_security_and_permissions(self):
-        """Scenario 8: Reject unauthenticated requests and protect deletion permissions."""
-        # 1. No token -> 401
+        """Reject unauthenticated requests and protect deletion permissions."""
         res_no_auth = self.client.get("/api/tasks")
         self.assertEqual(res_no_auth.status_code, 401)
 
-        # 2. Invalid token -> 401
         res_bad_auth = self.client.get("/api/tasks", headers={"Authorization": "Bearer bad-token-xxx"})
         self.assertEqual(res_bad_auth.status_code, 401)
 
-        # 3. User B tries to delete User A's task -> 403 Forbidden
+        # User B cannot delete User A's task -> 403 Forbidden
         task_res = self.client.post(
             "/api/tasks",
             headers=self.auth_headers_a,
@@ -243,13 +197,9 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
 
         del_res_unauthorized = self.client.delete(f"/api/tasks/{task_id}", headers=self.auth_headers_b)
         self.assertEqual(del_res_unauthorized.status_code, 403)
-        print("\n[SCENARIO 8 PASS] Security controls active: 401 on missing auth, 403 on forbidden actions.")
 
-    # ==========================================
-    # SCENARIO 9: Task Deletion Flow
-    # ==========================================
     def test_scenario_09_task_deletion(self):
-        """Scenario 9: Creator deletes their task and verifies permanent removal."""
+        """Creator deletes their task and verifies permanent removal."""
         task_res = self.client.post(
             "/api/tasks",
             headers=self.auth_headers_a,
@@ -260,10 +210,8 @@ class EndToEndFullScenariosTestCase(unittest.TestCase):
         del_res = self.client.delete(f"/api/tasks/{task_id}", headers=self.auth_headers_a)
         self.assertEqual(del_res.status_code, 200)
 
-        # Confirm 404
         get_res = self.client.get(f"/api/tasks/{task_id}", headers=self.auth_headers_a)
         self.assertEqual(get_res.status_code, 404)
-        print(f"\n[SCENARIO 9 PASS] Task successfully deleted and verified 404 from database.")
 
 
 if __name__ == "__main__":

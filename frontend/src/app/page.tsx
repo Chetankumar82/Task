@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  // 1. Initialize Theme from localStorage
+  // Theme preference
   useEffect(() => {
     try {
       const savedTheme = (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark';
@@ -95,7 +95,7 @@ export default function DashboardPage() {
     document.documentElement.setAttribute('data-theme', nextTheme);
   };
 
-  // 2. Initial Authentication & User Detection
+  // Session restore & initial auth check
   useEffect(() => {
     async function initAuth() {
       try {
@@ -145,7 +145,7 @@ export default function DashboardPage() {
     initAuth();
   }, []);
 
-  // 3. Fetch Users and System Health
+  // Team directory and health checks
   const loadInitialData = useCallback(async () => {
     try {
       const [usersData, healthData] = await Promise.all([
@@ -163,7 +163,7 @@ export default function DashboardPage() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // 4. Fetch Tasks & Statistics
+  // Fetch tasks and workspace metrics
   const loadTasksAndStats = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -194,7 +194,7 @@ export default function DashboardPage() {
     }
   }, [currentUser, loadTasksAndStats]);
 
-  // 5. Handle Task Status Change
+  // Handle drag/click status updates
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
       const updated = await api.updateTask(taskId, { status: newStatus });
@@ -217,7 +217,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 6. Handle Task Creation or Update
+  // Create or update task
   const handleTaskSubmit = async (formData: TaskFormData) => {
     try {
       if (editingTask) {
@@ -246,7 +246,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 7. Handle Task Deletion
+  // Delete task
   const handleDeleteTask = async (taskId: string) => {
     try {
       await api.deleteTask(taskId);
@@ -259,7 +259,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 8. Handle User Switching & Sign In
+  // Profile selection
   const handleSelectUser = (user: UserProfile) => {
     localStorage.removeItem('user_logged_out');
     localStorage.setItem('active_demo_user', JSON.stringify(user));
@@ -268,7 +268,7 @@ export default function DashboardPage() {
     showToast('success', 'Signed In', `Logged in as ${user.full_name} (${user.email})`);
   };
 
-  // 9. Handle Sign Out
+  // Sign out
   const handleSignOut = () => {
     localStorage.setItem('user_logged_out', 'true');
     localStorage.removeItem('active_demo_user');
@@ -580,7 +580,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* TAB 1: OVERVIEW */}
+          {/* Overview View */}
           {currentTab === 'overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
               {/* Executive Stat Cards */}
@@ -719,7 +719,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* TAB 2: KANBAN BOARD */}
+          {/* Board View */}
           {currentTab === 'kanban' && (
             <KanbanBoard
               tasks={tasks}
@@ -737,7 +737,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* TAB 3: TABLE LIST VIEW */}
+          {/* List View */}
           {currentTab === 'list' && (
             <TaskListView
               tasks={tasks}
@@ -751,7 +751,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* TAB 4: DEEP ANALYTICS */}
+          {/* Analytics View */}
           {currentTab === 'analytics' && (
             <AnalyticsCharts
               tasks={tasks}
@@ -768,7 +768,7 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* TAB 5: TEAM COLLABORATORS */}
+          {/* Team View */}
           {currentTab === 'team' && (
             <TeamView
               users={allUsers}

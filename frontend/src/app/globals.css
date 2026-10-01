@@ -1,9 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* ==========================================================================
-   THEME VARIABLES (DUAL THEME: DARK & LIGHT)
-   ========================================================================== */
+/* Theme variables */
 
 :root, [data-theme="dark"] {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -358,9 +356,7 @@ body::before {
   animation: pulseGlow 2.5s infinite ease-in-out;
 }
 
-/* ==========================================================================
-   RESPONSIVE DESIGN BREAKPOINTS
-   ========================================================================== */
+/* Responsive breakpoints */
 
 /* Mobile Menu Button */
 .mobile-menu-btn {
