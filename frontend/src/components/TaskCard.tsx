@@ -128,13 +128,17 @@ export function TaskCard({
       </div>
 
       {/* Task Title */}
-      <h3 style={{
-        fontSize: '14px',
-        fontWeight: 600,
-        color: 'var(--text-primary)',
-        marginBottom: '6px',
-        lineHeight: 1.4,
-      }}>
+      <h3 
+        onClick={() => onEdit(task)}
+        style={{
+          fontSize: '14px',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          marginBottom: '6px',
+          lineHeight: 1.4,
+          cursor: 'pointer',
+        }}
+      >
         {task.title}
       </h3>
 
@@ -243,7 +247,7 @@ export function TaskCard({
                 background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                 boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
               }}
-              title="Mark Completed (Dispatches Email Notification)"
+              title="Mark as completed"
             >
               <CheckCircle size={12} />
               <span>Complete</span>

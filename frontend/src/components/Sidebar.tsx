@@ -17,7 +17,8 @@ import {
   Database,
   ChevronRight,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  X
 } from 'lucide-react';
 import { UserProfile, DashboardStats, SystemHealth } from '@/lib/types';
 
@@ -36,6 +37,8 @@ interface SidebarProps {
   onToggleTheme: () => void;
   stats: DashboardStats;
   systemHealth?: SystemHealth | null;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export function Sidebar({
@@ -51,6 +54,8 @@ export function Sidebar({
   onToggleTheme,
   stats,
   systemHealth,
+  isMobileOpen = false,
+  onCloseMobile,
 }: SidebarProps) {
   const navItems = [
     { id: 'overview' as NavTab, label: 'Overview', icon: LayoutDashboard, badge: stats.total_tasks },
@@ -67,65 +72,99 @@ export function Sidebar({
   ];
 
   return (
-    <aside style={{
-      width: '260px',
-      minWidth: '260px',
-      height: '100vh',
-      position: 'sticky',
-      top: 0,
-      background: 'var(--bg-sidebar)',
-      borderRight: '1px solid var(--sidebar-border)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: '20px 16px',
-      zIndex: 40,
-      transition: 'background-color 0.25s ease, border-color 0.25s ease',
-    }}>
-      {/* Top Section: Brand + Action + Nav */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Workspace Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 4px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)',
-            flexShrink: 0,
-          }}>
-            <Sparkles size={18} color="#ffffff" />
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{
-              fontSize: '15px',
-              fontWeight: 800,
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.3px',
-              color: 'var(--text-primary)',
-              whiteSpace: 'nowrap',
-            }}>
-              Hairdrama <span className="gradient-text">Tech</span>
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {isMobileOpen && (
+        <div 
+          onClick={onCloseMobile} 
+          className="mobile-drawer-backdrop" 
+        />
+      )}
+
+      <aside 
+        className={`sidebar-container ${isMobileOpen ? 'open' : 'closed'}`}
+        style={{
+          width: '260px',
+          minWidth: '260px',
+          height: '100vh',
+          position: 'sticky',
+          top: 0,
+          background: 'var(--bg-sidebar)',
+          borderRight: '1px solid var(--sidebar-border)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '20px 16px',
+          zIndex: 100,
+          overflowY: 'auto',
+          transition: 'background-color 0.25s ease, border-color 0.25s ease',
+        }}
+      >
+        {/* Top Section: Brand + Action + Nav */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Workspace Brand Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)',
+                flexShrink: 0,
+              }}>
+                <Sparkles size={18} color="#ffffff" />
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-display)',
+                  letterSpacing: '-0.3px',
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  Hairdrama <span className="gradient-text">Tech</span>
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  color: 'var(--text-muted)',
+                  fontWeight: 500,
+                }}>
+                  Workspace
+                </div>
+              </div>
             </div>
-            <div style={{
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <span className="pulse-indicator" style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-              <span>Workspace Active</span>
-            </div>
+
+            {/* Mobile Drawer Close Button */}
+            <button
+              onClick={onCloseMobile}
+              className="sidebar-close-btn"
+              style={{
+                background: 'var(--surface-card-hover)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                padding: '6px',
+                borderRadius: '8px',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Close Menu"
+            >
+              <X size={16} />
+            </button>
           </div>
-        </div>
 
         {/* Quick Create Task CTA */}
         <button
-          onClick={onOpenCreateModal}
+          onClick={() => {
+            onOpenCreateModal();
+            onCloseMobile?.();
+          }}
           className="btn-primary"
           style={{
             width: '100%',
@@ -159,7 +198,10 @@ export function Sidebar({
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => {
+                  onSelectTab(item.id);
+                  onCloseMobile?.();
+                }}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -210,48 +252,53 @@ export function Sidebar({
           })}
         </nav>
 
-        {/* Scope Filter Section (Quick Filters) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <div style={{
-            fontSize: '10px',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px',
-            color: 'var(--text-muted)',
-            padding: '4px 10px',
-          }}>
-            Quick Scopes
+        {/* Scope Filter Section (Quick Filters) - Visible only on Board and List View */}
+        {(currentTab === 'kanban' || currentTab === 'list') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.6px',
+              color: 'var(--text-muted)',
+              padding: '4px 10px',
+            }}>
+              Quick Scopes
+            </div>
+            {scopes.map((s) => {
+              const isSelected = scopeFilter === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    onSelectScope(s.id);
+                    onCloseMobile?.();
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '7px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+                    color: isSelected ? 'var(--primary)' : 'var(--text-secondary)',
+                    fontSize: '12px',
+                    fontWeight: isSelected ? 600 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span>{s.label}</span>
+                  {s.count !== undefined && s.count > 0 && (
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{s.count}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          {scopes.map((s) => {
-            const isSelected = scopeFilter === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => onSelectScope(s.id)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '7px 10px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
-                  color: isSelected ? 'var(--primary)' : 'var(--text-secondary)',
-                  fontSize: '12px',
-                  fontWeight: isSelected ? 600 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                <span>{s.label}</span>
-                {s.count !== undefined && s.count > 0 && (
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{s.count}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        )}
       </div>
 
       {/* Bottom Section: Theme Toggle + User Profile */}
@@ -371,20 +418,8 @@ export function Sidebar({
             <span>Sign In</span>
           </button>
         )}
-
-        {/* Backend & Gmail SMTP Indicator */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          fontSize: '10px',
-          color: 'var(--text-muted)',
-        }}>
-          <ShieldCheck size={12} color="#10b981" />
-          <span>PostgreSQL &bull; Gmail SMTP</span>
-        </div>
       </div>
     </aside>
+  </>
   );
 }

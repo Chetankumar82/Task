@@ -105,7 +105,7 @@ export function TaskModal({
       padding: '20px',
     }}>
       <div 
-        className="glass-panel animate-modal-pop"
+        className="glass-panel animate-modal-pop modal-card-responsive"
         style={{
           maxWidth: '560px',
           width: '100%',
@@ -123,7 +123,7 @@ export function TaskModal({
               {initialData ? 'Edit Task' : 'Create New Task'}
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {initialData ? 'Update task attributes and assignment' : 'Add task and notify team members via Gmail'}
+              {initialData ? 'Update task details and assignment' : 'Add task and assign team members'}
             </p>
           </div>
           <button
@@ -238,7 +238,7 @@ export function TaskModal({
           </div>
 
           {/* Due Date & Assignee Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="modal-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             {/* Due Date */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
@@ -292,31 +292,10 @@ export function TaskModal({
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          {/* Email Notification Banner Callout */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            borderRadius: '10px',
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '12px',
-          }}>
-            <Mail size={18} color="var(--primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--text-primary)' }}>Automated Gmail Integration:</strong>{' '}
-              {selectedUser ? (
-                <>
-                  An email notification will be sent directly to{' '}
-                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{selectedUser.email}</span>{' '}
-                  alerting them of this assignment.
-                </>
-              ) : (
-                'Assigning this task to a teammate will immediately dispatch an email notification via Gmail SMTP.'
-              )}
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Mail size={12} color="var(--primary)" />
+                <span>{selectedUser ? `Email notification will be sent to ${selectedUser.email}` : 'Assignee will receive an email alert'}</span>
+              </div>
             </div>
           </div>
 
@@ -342,7 +321,7 @@ export function TaskModal({
               ) : (
                 <>
                   <Sparkles size={15} />
-                  <span>{initialData ? 'Update Task' : 'Create & Notify'}</span>
+                  <span>{initialData ? 'Save Changes' : 'Create Task'}</span>
                 </>
               )}
             </button>

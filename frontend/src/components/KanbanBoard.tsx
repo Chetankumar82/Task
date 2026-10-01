@@ -53,12 +53,15 @@ export function KanbanBoard({
   ];
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-      gap: '20px',
-      alignItems: 'start',
-    }}>
+    <div 
+      className="kanban-grid"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '20px',
+        alignItems: 'start',
+      }}
+    >
       {columns.map((col) => {
         const Icon = col.icon;
         const columnTasks = tasks.filter((t) => t.status === col.status);
@@ -66,6 +69,7 @@ export function KanbanBoard({
         return (
           <div
             key={col.status}
+            className="kanban-column"
             style={{
               background: 'var(--surface-column)',
               backdropFilter: 'blur(20px)',

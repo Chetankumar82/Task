@@ -34,7 +34,7 @@ export function StatsCards({
       icon: Layers,
       color: '#818cf8',
       bgGlow: 'rgba(99, 102, 241, 0.15)',
-      subtext: 'Across all active projects',
+      subtext: `${stats.total_tasks} across all projects`,
       filterType: 'status' as const,
       filterValue: 'all',
       isActive: activeStatusFilter === 'all' && activeScopeFilter === 'all',
@@ -45,7 +45,7 @@ export function StatsCards({
       icon: Clock,
       color: '#38bdf8',
       bgGlow: 'rgba(56, 189, 248, 0.15)',
-      subtext: 'Awaiting team kickoff',
+      subtext: stats.total_tasks > 0 ? `${Math.round((stats.pending_tasks / stats.total_tasks) * 100)}% of total` : 'None pending',
       filterType: 'status' as const,
       filterValue: 'pending',
       isActive: activeStatusFilter === 'pending',
@@ -56,7 +56,7 @@ export function StatsCards({
       icon: AlertCircle,
       color: '#fbbf24',
       bgGlow: 'rgba(251, 191, 36, 0.15)',
-      subtext: 'Actively in motion',
+      subtext: stats.total_tasks > 0 ? `${Math.round((stats.in_progress_tasks / stats.total_tasks) * 100)}% active` : 'None active',
       filterType: 'status' as const,
       filterValue: 'in_progress',
       isActive: activeStatusFilter === 'in_progress',
@@ -67,7 +67,7 @@ export function StatsCards({
       icon: CheckCircle2,
       color: '#34d399',
       bgGlow: 'rgba(52, 211, 153, 0.15)',
-      subtext: `${completionRate}% team completion rate`,
+      subtext: `${completionRate}% completion rate`,
       filterType: 'status' as const,
       filterValue: 'completed',
       isActive: activeStatusFilter === 'completed',
@@ -78,7 +78,7 @@ export function StatsCards({
       icon: UserCheck,
       color: '#f472b6',
       bgGlow: 'rgba(236, 72, 153, 0.15)',
-      subtext: 'My direct responsibilities',
+      subtext: `${stats.assigned_to_me} direct tasks`,
       filterType: 'scope' as const,
       filterValue: 'assigned_to_me',
       isActive: activeScopeFilter === 'assigned_to_me',
@@ -86,12 +86,15 @@ export function StatsCards({
   ];
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-      gap: '16px',
-      marginBottom: '28px',
-    }}>
+    <div 
+      className="stats-grid"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+        gap: '16px',
+        marginBottom: '28px',
+      }}
+    >
       {cards.map((card, idx) => {
         const Icon = card.icon;
         const cardPct = stats.total_tasks > 0 

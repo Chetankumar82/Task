@@ -54,10 +54,10 @@ export function AnalyticsCharts({
   const mediumCount = tasks.filter((t) => t.priority === 'medium').length;
   const lowCount = tasks.filter((t) => t.priority === 'low').length;
 
-  const urgentPct = total > 0 ? Math.round((urgentCount / total) * 100) : 0;
-  const highPct = total > 0 ? Math.round((highCount / total) * 100) : 0;
-  const mediumPct = total > 0 ? Math.round((mediumCount / total) * 100) : 0;
-  const lowPct = total > 0 ? Math.max(0, 100 - urgentPct - highPct - mediumPct) : 0;
+  const urgentPct = total > 0 && urgentCount > 0 ? Math.round((urgentCount / total) * 100) : 0;
+  const highPct = total > 0 && highCount > 0 ? Math.round((highCount / total) * 100) : 0;
+  const mediumPct = total > 0 && mediumCount > 0 ? Math.round((mediumCount / total) * 100) : 0;
+  const lowPct = total > 0 && lowCount > 0 ? Math.round((lowCount / total) * 100) : 0;
 
   // Assignee workload aggregation
   const workloadByUser: { [userId: string]: { user: UserProfile; total: number; completed: number } } = {};
@@ -79,12 +79,15 @@ export function AnalyticsCharts({
   const activeWorkloadList = Object.values(workloadByUser).filter((w) => w.total > 0 || allUsers.length <= 4);
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-      gap: '20px',
-      marginBottom: '28px',
-    }}>
+    <div 
+      className="charts-grid"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '20px',
+        marginBottom: '28px',
+      }}
+    >
       {/* Chart Card 1: Interactive Status Donut & Efficiency */}
       <div 
         className="glass-panel interactive-card"
@@ -110,8 +113,7 @@ export function AnalyticsCharts({
               <PieIcon size={17} color="#34d399" />
             </div>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Task Status Distribution</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Real-time breakdown</p>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Task Status</h3>
             </div>
           </div>
           <span style={{
@@ -305,8 +307,7 @@ export function AnalyticsCharts({
                 <Flame size={17} color="#f87171" />
               </div>
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Priority Heatmap</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Urgency distribution</p>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Priority Urgency</h3>
               </div>
             </div>
             <span style={{
@@ -390,7 +391,9 @@ export function AnalyticsCharts({
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: p.color }}>{p.count}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({p.pct}%)</span>
+                  {p.count > 0 && (
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({p.pct}%)</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -424,7 +427,6 @@ export function AnalyticsCharts({
               </div>
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Team Workload</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Active task assignments</p>
               </div>
             </div>
             <span style={{
@@ -479,8 +481,8 @@ export function AnalyticsCharts({
                         {user.full_name}
                       </span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                      {userCompleted}/{userTotal} tasks ({userPct}%)
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: userTotal > 0 ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
+                      {userTotal > 0 ? `${userCompleted}/${userTotal} completed (${userPct}%)` : '0 tasks'}
                     </span>
                   </div>
 

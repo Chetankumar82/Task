@@ -120,7 +120,7 @@ export function LoginModal({
       padding: '20px',
     }}>
       <div 
-        className="glass-panel animate-modal-pop"
+        className="glass-panel animate-modal-pop modal-card-responsive"
         style={{
           maxWidth: '460px',
           width: '100%',

@@ -45,7 +45,7 @@ export function TaskListView({
 
   return (
     <div className="glass-panel" style={{ overflowX: 'auto', borderRadius: '16px' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+      <table style={{ width: '100%', minWidth: '650px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--table-header-bg)' }}>
             <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Task Title & Description</th>
@@ -74,7 +74,10 @@ export function TaskListView({
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 {/* Title & Description */}
-                <td style={{ padding: '14px 18px', maxWidth: '320px' }}>
+                <td 
+                  onClick={() => onEdit(task)}
+                  style={{ padding: '14px 18px', maxWidth: '320px', cursor: 'pointer' }}
+                >
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                     {task.title}
                   </div>
