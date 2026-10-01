@@ -110,8 +110,8 @@ export function AnalyticsCharts({
               <PieIcon size={17} color="#34d399" />
             </div>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Task Status Distribution</h3>
-              <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Real-time breakdown</p>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Task Status Distribution</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Real-time breakdown</p>
             </div>
           </div>
           <span style={{
@@ -136,7 +136,7 @@ export function AnalyticsCharts({
               cy="90"
               r={radius}
               fill="transparent"
-              stroke="rgba(255, 255, 255, 0.06)"
+              stroke="var(--border-subtle)"
               strokeWidth="18"
             />
 
@@ -201,10 +201,10 @@ export function AnalyticsCharts({
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <span style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-display)', lineHeight: 1 }}>
+            <span style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>
               {total}
             </span>
-            <span style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 600 }}>
               {hoveredSlice ? hoveredSlice.replace('_', ' ').toUpperCase() : 'TOTAL TASKS'}
             </span>
           </div>
@@ -230,8 +230,8 @@ export function AnalyticsCharts({
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} />
               Completed
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{completed}</div>
-            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{completionPct}%</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{completed}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{completionPct}%</div>
           </div>
 
           <div 
@@ -252,8 +252,8 @@ export function AnalyticsCharts({
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24' }} />
               In Progress
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{inProgress}</div>
-            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{inProgressPct}%</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{inProgress}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{inProgressPct}%</div>
           </div>
 
           <div 
@@ -274,8 +274,8 @@ export function AnalyticsCharts({
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8' }} />
               Pending
             </div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{pending}</div>
-            <div style={{ fontSize: '10px', color: '#cbd5e1' }}>{pendingPct}%</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{pending}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{pendingPct}%</div>
           </div>
         </div>
       </div>
@@ -305,8 +305,8 @@ export function AnalyticsCharts({
                 <Flame size={17} color="#f87171" />
               </div>
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Priority Heatmap</h3>
-                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Urgency distribution</p>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Priority Heatmap</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Urgency distribution</p>
               </div>
             </div>
             <span style={{
@@ -329,7 +329,7 @@ export function AnalyticsCharts({
               borderRadius: '9999px',
               overflow: 'hidden',
               display: 'flex',
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'var(--border-subtle)',
               border: '1px solid var(--border-subtle)',
             }}>
               {urgentCount > 0 && (
@@ -365,7 +365,7 @@ export function AnalyticsCharts({
               { id: 'urgent', label: 'Urgent', count: urgentCount, pct: urgentPct, color: '#f87171', bg: 'rgba(239, 68, 68, 0.15)' },
               { id: 'high', label: 'High', count: highCount, pct: highPct, color: '#fb923c', bg: 'rgba(249, 115, 22, 0.15)' },
               { id: 'medium', label: 'Medium', count: mediumCount, pct: mediumPct, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)' },
-              { id: 'low', label: 'Low', count: lowCount, pct: lowPct, color: '#cbd5e1', bg: 'rgba(148, 163, 184, 0.15)' },
+              { id: 'low', label: 'Low', count: lowCount, pct: lowPct, color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)' },
             ].map((p) => (
               <div
                 key={p.id}
@@ -376,21 +376,21 @@ export function AnalyticsCharts({
                   justifyContent: 'space-between',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.02)',
+                  background: 'var(--tag-bg)',
                   border: '1px solid var(--border-subtle)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-card-hover)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--tag-bg)'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color }} />
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>{p.label}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{p.label}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: p.color }}>{p.count}</span>
-                  <span style={{ fontSize: '11px', color: '#cbd5e1' }}>({p.pct}%)</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({p.pct}%)</span>
                 </div>
               </div>
             ))}
@@ -423,8 +423,8 @@ export function AnalyticsCharts({
                 <Users size={17} color="#818cf8" />
               </div>
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Team Workload</h3>
-                <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Active task assignments</p>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Team Workload</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Active task assignments</p>
               </div>
             </div>
             <span style={{
@@ -450,7 +450,7 @@ export function AnalyticsCharts({
                   style={{
                     padding: '10px 12px',
                     borderRadius: '10px',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: 'var(--tag-bg)',
                     border: '1px solid var(--border-subtle)',
                   }}
                 >
@@ -467,6 +467,7 @@ export function AnalyticsCharts({
                         justifyContent: 'center',
                         fontSize: '10px',
                         fontWeight: 700,
+                        color: '#ffffff',
                       }}>
                         {user.avatar_url ? (
                           <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%' }} />
@@ -474,11 +475,11 @@ export function AnalyticsCharts({
                           user.full_name?.charAt(0) || 'U'
                         )}
                       </div>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {user.full_name}
                       </span>
                     </div>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#cbd5e1' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
                       {userCompleted}/{userTotal} tasks ({userPct}%)
                     </span>
                   </div>
@@ -488,7 +489,7 @@ export function AnalyticsCharts({
                     width: '100%',
                     height: '5px',
                     borderRadius: '9999px',
-                    background: 'rgba(255, 255, 255, 0.08)',
+                    background: 'var(--border-subtle)',
                     overflow: 'hidden',
                   }}>
                     <div style={{

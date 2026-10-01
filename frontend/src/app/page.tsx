@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Navbar } from '@/components/Navbar';
+import { Sidebar, NavTab } from '@/components/Sidebar';
 import { StatsCards } from '@/components/StatsCards';
-import { TaskFilters } from '@/components/TaskFilters';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { TaskListView } from '@/components/TaskListView';
 import { AnalyticsCharts } from '@/components/AnalyticsCharts';
+import { TeamView } from '@/components/TeamView';
 import { TaskModal } from '@/components/TaskModal';
 import { LoginModal } from '@/components/LoginModal';
 import { useToast } from '@/components/Toast';
@@ -24,17 +24,28 @@ import {
   Plus, 
   Sparkles, 
   RefreshCw, 
-  Mail, 
-  CheckCircle2, 
-  BarChart3, 
-  ChevronDown, 
-  PieChart as PieIcon,
-  Layers,
-  Activity
+  Search, 
+  Filter, 
+  X,
+  ChevronRight,
+  ShieldCheck,
+  LayoutDashboard,
+  Kanban,
+  ListTodo,
+  BarChart3,
+  Users,
+  Clock,
+  ArrowRight
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { showToast } = useToast();
+
+  // Dual Theme State (Light vs Dark)
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  // Navigation State (default to rich overview with charts & metrics)
+  const [currentTab, setCurrentTab] = useState<NavTab>('overview');
 
   // App State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -51,20 +62,38 @@ export default function DashboardPage() {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filters & View State
+  // Filters State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [scopeFilter, setScopeFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'analytics'>('kanban');
-  const [showInsights, setShowInsights] = useState(true);
 
-  // Modals
+  // Modals State
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  // 1. Initial Authentication & User Detection
+  // 1. Initialize Theme from localStorage
+  useEffect(() => {
+    try {
+      const savedTheme = (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } catch {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem('app_theme', nextTheme);
+    } catch {}
+    document.documentElement.setAttribute('data-theme', nextTheme);
+  };
+
+  // 2. Initial Authentication & User Detection
   useEffect(() => {
     async function initAuth() {
       try {
@@ -96,7 +125,7 @@ export default function DashboardPage() {
         if (storedUser) {
           setCurrentUser(JSON.parse(storedUser));
         } else {
-          // Default to first demo reviewer account for instant initial preview
+          // Default to first demo reviewer account for instant preview
           const defaultUser: UserProfile = {
             id: 'usr_demo_1',
             email: 'sarah.developer@gmail.com',
@@ -114,7 +143,7 @@ export default function DashboardPage() {
     initAuth();
   }, []);
 
-  // 2. Fetch Users and System Health
+  // 3. Fetch Users and System Health
   const loadInitialData = useCallback(async () => {
     try {
       const [usersData, healthData] = await Promise.all([
@@ -132,13 +161,13 @@ export default function DashboardPage() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // 3. Fetch Tasks & Statistics
+  // 4. Fetch Tasks & Statistics
   const loadTasksAndStats = useCallback(async () => {
     setIsLoading(true);
     try {
       const [tasksData, statsData] = await Promise.all([
         api.getTasks({
-          status: viewMode === 'analytics' ? 'all' : statusFilter,
+          status: currentTab === 'analytics' ? 'all' : statusFilter,
           priority: priorityFilter,
           filter: scopeFilter,
           search: searchQuery,
@@ -154,7 +183,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [viewMode, statusFilter, priorityFilter, scopeFilter, searchQuery, showToast]);
+  }, [currentTab, statusFilter, priorityFilter, scopeFilter, searchQuery, showToast]);
 
   useEffect(() => {
     if (currentUser) {
@@ -162,20 +191,19 @@ export default function DashboardPage() {
     }
   }, [currentUser, loadTasksAndStats]);
 
-  // 4. Handle Task Status Change
+  // 5. Handle Task Status Change
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
     try {
       const updated = await api.updateTask(taskId, { status: newStatus });
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
 
-      // Refresh stats
       const newStats = await api.getStats();
       setStats(newStats);
 
       if (newStatus === 'completed') {
         showToast(
           'success',
-          'Task Marked as Completed! 🎉',
+          'Task Completed! 🎉',
           'Automated completion notification dispatched to team via Gmail.'
         );
       } else {
@@ -186,7 +214,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 5. Handle Task Creation or Update
+  // 6. Handle Task Creation or Update
   const handleTaskSubmit = async (formData: TaskFormData) => {
     try {
       if (editingTask) {
@@ -197,7 +225,6 @@ export default function DashboardPage() {
         const created = await api.createTask(formData);
         setTasks((prev) => [created, ...prev]);
 
-        // Find assignee name
         const assignee = allUsers.find((u) => u.id === formData.assigned_to);
         const assigneeText = assignee ? `Assigned to ${assignee.full_name} (${assignee.email})` : 'New task registered';
         
@@ -216,7 +243,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 6. Handle Task Deletion
+  // 7. Handle Task Deletion
   const handleDeleteTask = async (taskId: string) => {
     try {
       await api.deleteTask(taskId);
@@ -229,7 +256,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 7. Handle User Switching & Sign In
+  // 8. Handle User Switching & Sign In
   const handleSelectUser = (user: UserProfile) => {
     localStorage.removeItem('user_logged_out');
     localStorage.setItem('active_demo_user', JSON.stringify(user));
@@ -238,78 +265,165 @@ export default function DashboardPage() {
     showToast('success', 'Signed In', `Logged in as ${user.full_name} (${user.email})`);
   };
 
-  // 8. Handle Sign Out
+  // 9. Handle Sign Out
   const handleSignOut = () => {
+    localStorage.setItem('user_logged_out', 'true');
+    localStorage.removeItem('active_demo_user');
     setCurrentUser(null);
     showToast('info', 'Signed Out', 'You have been signed out.');
   };
 
+  const tabTitles: { [key in NavTab]: { title: string; subtitle: string; icon: typeof Kanban } } = {
+    overview: { title: 'Executive Overview', subtitle: 'Workspace KPIs, completion ratios, and activity stream', icon: LayoutDashboard },
+    kanban: { title: 'Interactive Kanban Board', subtitle: 'Organize, advance, and assign tasks across workflow stages', icon: Kanban },
+    list: { title: 'Task Table List', subtitle: 'Dense data view with status controls and priority filtering', icon: ListTodo },
+    analytics: { title: 'Visual Analytics & Charts', subtitle: 'SVG donut chart, priority urgency breakdown, and team workload', icon: BarChart3 },
+    team: { title: 'Team Collaborators', subtitle: 'Member capacity, assigned workloads, and contact cards', icon: Users },
+  };
+
+  const CurrentIcon = tabTitles[currentTab].icon;
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Navigation */}
-      <Navbar
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Left Navigation Sidebar */}
+      <Sidebar
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
+        scopeFilter={scopeFilter}
+        onSelectScope={setScopeFilter}
         currentUser={currentUser}
         onOpenCreateModal={() => {
           setEditingTask(null);
           setIsTaskModalOpen(true);
         }}
-        onSwitchUser={handleSelectUser}
-        allUsers={allUsers}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
         onSignOut={handleSignOut}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        stats={stats}
         systemHealth={systemHealth}
       />
 
-      {/* Main Content Container */}
-      <main style={{ flex: 1, maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '32px 28px' }}>
-        {/* Welcome Hero Banner */}
-        <div style={{
+      {/* Main Workspace Canvas */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'hidden' }}>
+        {/* Top Header Bar */}
+        <header style={{
+          height: '64px',
+          padding: '0 28px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--surface-glass)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-          gap: '20px',
-          marginBottom: '28px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          gap: '16px',
         }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.3)', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', color: '#c7d2fe', fontWeight: 600, marginBottom: '10px' }}>
-              <span className="pulse-indicator" style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-              <span>Hairdrama Tech Workspace &bull; Supabase PostgreSQL &bull; Gmail SMTP</span>
-            </div>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: 800,
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '-0.8px',
-              color: '#ffffff',
-              lineHeight: 1.2,
+          {/* Left: View Breadcrumb & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '30px',
+              height: '30px',
+              borderRadius: '8px',
+              background: 'rgba(99, 102, 241, 0.15)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}>
-              {currentUser ? (
-                <>Welcome back, <span className="gradient-text">{currentUser.full_name?.split(' ')[0]}</span> 👋</>
-              ) : (
-                <>Collaborative Task Management for <span className="gradient-text">Product Teams</span></>
-              )}
-            </h1>
-            <p style={{ fontSize: '14px', color: '#cbd5e1', marginTop: '6px', maxWidth: '680px', lineHeight: 1.6 }}>
-              {currentUser 
-                ? 'Manage projects, assign teammates, and track status with real-time automated Gmail notifications on creation and completion.'
-                : 'Sign in to assign tasks to teammates and receive automated email dispatches via Gmail SMTP.'
-              }
-            </p>
+              <CurrentIcon size={16} color="var(--primary)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+                {tabTitles[currentTab].title}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                {tasks.length} active {tasks.length === 1 ? 'task' : 'tasks'} &bull; Hairdrama Workspace
+              </div>
+            </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Right: Search, Priority Filter, Refresh, Create Task */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Search Input */}
+            <div style={{ position: 'relative', width: '220px' }}>
+              <Search 
+                size={14} 
+                color="var(--primary)" 
+                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} 
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks..."
+                style={{
+                  width: '100%',
+                  background: 'var(--surface-card-hover)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  padding: '7px 28px 7px 32px',
+                  fontSize: '12px',
+                  outline: 'none',
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Priority Filter Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Filter size={13} color="var(--primary)" />
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                style={{
+                  background: 'var(--surface-card-hover)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="all">All Priorities</option>
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+
+            {/* Refresh Button */}
             <button
               onClick={() => loadTasksAndStats()}
               className="btn-secondary"
-              style={{ fontSize: '13px', padding: '9px 14px' }}
-              title="Refresh Data"
+              style={{ fontSize: '12px', padding: '7px 12px', borderRadius: '8px' }}
+              title="Refresh Tasks"
             >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-              <span>Refresh</span>
+              <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
             </button>
 
+            {/* Create Task Button */}
             {currentUser ? (
               <button
                 onClick={() => {
@@ -317,284 +431,302 @@ export default function DashboardPage() {
                   setIsTaskModalOpen(true);
                 }}
                 className="btn-primary"
-                style={{ fontSize: '13px', padding: '10px 20px' }}
+                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '8px' }}
               >
-                <Plus size={16} />
+                <Plus size={14} />
                 <span>Create Task</span>
               </button>
             ) : (
               <button
                 onClick={() => setIsLoginModalOpen(true)}
                 className="btn-primary"
-                style={{ fontSize: '13px', padding: '10px 20px' }}
+                style={{ fontSize: '12px', padding: '7px 14px', borderRadius: '8px' }}
               >
-                <Sparkles size={16} />
-                <span>Sign In to Get Started</span>
+                <Sparkles size={14} />
+                <span>Sign In</span>
               </button>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Dashboard Metric Overview Cards with interactive filter selection */}
-        <StatsCards 
-          stats={stats}
-          activeStatusFilter={statusFilter}
-          activeScopeFilter={scopeFilter}
-          onSelectFilter={(type, value) => {
-            if (type === 'status') {
-              setStatusFilter((prev) => prev === value ? 'all' : value);
-            } else if (type === 'scope') {
-              setScopeFilter((prev) => prev === value ? 'all' : value);
-            }
-          }}
-        />
-
-        {/* Executive Visual Intelligence Panel (Donut Chart, Priority Heatmap, Workload Bars) */}
-        {viewMode !== 'analytics' && (
-          <div style={{ marginBottom: '28px' }}>
+        {/* Content Body */}
+        <main style={{ flex: 1, padding: '28px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
+          {/* Active Filters Pill Bar (when filters applied) */}
+          {(statusFilter !== 'all' || priorityFilter !== 'all' || scopeFilter !== 'all' || searchQuery.trim() !== '') && (
             <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '14px',
-              padding: '0 4px',
+              gap: '8px',
+              flexWrap: 'wrap',
+              marginBottom: '20px',
+              padding: '8px 14px',
+              background: 'rgba(99, 102, 241, 0.08)',
+              border: '1px solid rgba(99, 102, 241, 0.25)',
+              borderRadius: '10px',
+              fontSize: '12px',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '8px',
-                  background: 'rgba(99, 102, 241, 0.2)',
-                  border: '1px solid rgba(99, 102, 241, 0.35)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <BarChart3 size={15} color="#818cf8" />
-                </div>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>
-                  Visual Analytics &amp; Project Health
-                </span>
+              <span style={{ color: 'var(--primary)', fontWeight: 700 }}>Active Filters:</span>
+              {statusFilter !== 'all' && (
                 <span style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  background: 'rgba(99, 102, 241, 0.15)',
-                  color: '#818cf8',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  background: 'var(--surface-card)',
+                  color: 'var(--text-primary)',
                   padding: '2px 8px',
-                  borderRadius: '9999px',
-                }}>
-                  Interactive Insights
-                </span>
-              </div>
-
-              <button
-                onClick={() => setShowInsights(!showInsights)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  padding: '5px 12px',
-                  color: '#cbd5e1',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s ease',
+                  gap: '4px',
+                }}>
+                  Status: <strong>{statusFilter.replace('_', ' ')}</strong>
+                  <button 
+                    onClick={() => setStatusFilter('all')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+                  >&times;</button>
+                </span>
+              )}
+              {priorityFilter !== 'all' && (
+                <span style={{
+                  background: 'var(--surface-card)',
+                  color: 'var(--text-primary)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  Priority: <strong>{priorityFilter}</strong>
+                  <button 
+                    onClick={() => setPriorityFilter('all')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+                  >&times;</button>
+                </span>
+              )}
+              {scopeFilter !== 'all' && (
+                <span style={{
+                  background: 'var(--surface-card)',
+                  color: 'var(--text-primary)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  Scope: <strong>{scopeFilter.replace('_', ' ')}</strong>
+                  <button 
+                    onClick={() => setScopeFilter('all')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+                  >&times;</button>
+                </span>
+              )}
+              {searchQuery.trim() !== '' && (
+                <span style={{
+                  background: 'var(--surface-card)',
+                  color: 'var(--text-primary)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  Search: &ldquo;{searchQuery}&rdquo;
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+                  >&times;</button>
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setStatusFilter('all');
+                  setPriorityFilter('all');
+                  setScopeFilter('all');
+                  setSearchQuery('');
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = '#ffffff'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
+                style={{
+                  marginLeft: 'auto',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  textDecoration: 'underline',
+                }}
               >
-                <span>{showInsights ? 'Hide Insights' : 'Show Insights'}</span>
-                <ChevronDown size={14} style={{ transform: showInsights ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+                Reset all filters
               </button>
             </div>
+          )}
 
-            {showInsights && (
+          {/* TAB 1: OVERVIEW */}
+          {currentTab === 'overview' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              {/* Executive Stat Cards */}
+              <StatsCards 
+                stats={stats}
+                activeStatusFilter={statusFilter}
+                activeScopeFilter={scopeFilter}
+                onSelectFilter={(type, value) => {
+                  if (type === 'status') {
+                    setStatusFilter((prev) => prev === value ? 'all' : value);
+                  } else if (type === 'scope') {
+                    setScopeFilter((prev) => prev === value ? 'all' : value);
+                  }
+                }}
+              />
+
+              {/* Visual Analytics Donut Chart & Priority Heatmap */}
               <AnalyticsCharts
                 tasks={tasks}
                 stats={stats}
                 allUsers={allUsers}
-                onFilterByStatus={(st) => setStatusFilter(st)}
-                onFilterByPriority={(pr) => setPriorityFilter(pr)}
+                onFilterByStatus={(st) => {
+                  setStatusFilter(st);
+                  setCurrentTab('kanban');
+                }}
+                onFilterByPriority={(pr) => {
+                  setPriorityFilter(pr);
+                  setCurrentTab('kanban');
+                }}
               />
-            )}
-          </div>
-        )}
 
-        {/* Active Filters Pill Bar (when filters applied) */}
-        {(statusFilter !== 'all' || priorityFilter !== 'all' || scopeFilter !== 'all' || searchQuery.trim() !== '') && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            flexWrap: 'wrap',
-            marginBottom: '16px',
-            padding: '8px 14px',
-            background: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            borderRadius: '10px',
-            fontSize: '12px',
-          }}>
-            <span style={{ color: '#c7d2fe', fontWeight: 600 }}>Active Filters:</span>
-            {statusFilter !== 'all' && (
-              <span style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}>
-                Status: <strong>{statusFilter.replace('_', ' ')}</strong>
-                <button 
-                  onClick={() => setStatusFilter('all')}
-                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
-                >&times;</button>
-              </span>
-            )}
-            {priorityFilter !== 'all' && (
-              <span style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}>
-                Priority: <strong>{priorityFilter}</strong>
-                <button 
-                  onClick={() => setPriorityFilter('all')}
-                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
-                >&times;</button>
-              </span>
-            )}
-            {scopeFilter !== 'all' && (
-              <span style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}>
-                Scope: <strong>{scopeFilter.replace('_', ' ')}</strong>
-                <button 
-                  onClick={() => setScopeFilter('all')}
-                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
-                >&times;</button>
-              </span>
-            )}
-            {searchQuery.trim() !== '' && (
-              <span style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}>
-                Search: &ldquo;{searchQuery}&rdquo;
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}
-                >&times;</button>
-              </span>
-            )}
-            <button
-              onClick={() => {
-                setStatusFilter('all');
-                setPriorityFilter('all');
+              {/* Recent Tasks Preview */}
+              <div className="glass-panel" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                      Recent Workspace Activity
+                    </h3>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Latest assigned deliverables with Gmail notifications
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentTab('kanban')}
+                    className="btn-secondary"
+                    style={{ fontSize: '12px', padding: '6px 12px' }}
+                  >
+                    <span>Open Full Board</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {tasks.slice(0, 5).map((t) => (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        background: 'var(--surface-card-hover)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className={`badge-status-${t.status.replace('_', '')}`} style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' }}>
+                          {t.status.replace('_', ' ')}
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {t.title}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {t.assignee ? t.assignee.full_name : 'Unassigned'}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEditingTask(t);
+                            setIsTaskModalOpen(true);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--primary)',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: KANBAN BOARD */}
+          {currentTab === 'kanban' && (
+            <KanbanBoard
+              tasks={tasks}
+              onStatusChange={handleStatusChange}
+              onEdit={(task) => {
+                setEditingTask(task);
+                setIsTaskModalOpen(true);
+              }}
+              onDelete={handleDeleteTask}
+              onOpenCreateModal={() => {
+                setEditingTask(null);
+                setIsTaskModalOpen(true);
+              }}
+              currentUserId={currentUser?.id}
+            />
+          )}
+
+          {/* TAB 3: TABLE LIST VIEW */}
+          {currentTab === 'list' && (
+            <TaskListView
+              tasks={tasks}
+              onStatusChange={handleStatusChange}
+              onEdit={(task) => {
+                setEditingTask(task);
+                setIsTaskModalOpen(true);
+              }}
+              onDelete={handleDeleteTask}
+              currentUserId={currentUser?.id}
+            />
+          )}
+
+          {/* TAB 4: DEEP ANALYTICS */}
+          {currentTab === 'analytics' && (
+            <AnalyticsCharts
+              tasks={tasks}
+              stats={stats}
+              allUsers={allUsers}
+              onFilterByStatus={(st) => {
+                setStatusFilter(st);
+                setCurrentTab('kanban');
+              }}
+              onFilterByPriority={(pr) => {
+                setPriorityFilter(pr);
+                setCurrentTab('kanban');
+              }}
+            />
+          )}
+
+          {/* TAB 5: TEAM COLLABORATORS */}
+          {currentTab === 'team' && (
+            <TeamView
+              users={allUsers}
+              tasks={tasks}
+              onSelectUserFilter={(userId) => {
                 setScopeFilter('all');
                 setSearchQuery('');
+                setCurrentTab('list');
               }}
-              style={{
-                marginLeft: 'auto',
-                background: 'none',
-                border: 'none',
-                color: '#818cf8',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '11px',
-                textDecoration: 'underline',
-              }}
-            >
-              Reset all filters
-            </button>
-          </div>
-        )}
-
-        {/* Filters & Search Toolbar */}
-        <TaskFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          scopeFilter={scopeFilter}
-          onScopeFilterChange={setScopeFilter}
-          priorityFilter={priorityFilter}
-          onPriorityFilterChange={setPriorityFilter}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-        />
-
-        {/* Task Board / List / Analytics Display */}
-        {isLoading && tasks.length === 0 ? (
-          <div style={{
-            padding: '60px',
-            textAlign: 'center',
-            color: '#cbd5e1',
-            fontSize: '14px',
-          }}>
-            <RefreshCw size={24} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 12px' }} />
-            <div>Loading tasks and team assignments...</div>
-          </div>
-        ) : viewMode === 'kanban' ? (
-          <KanbanBoard
-            tasks={tasks}
-            onStatusChange={handleStatusChange}
-            onEdit={(task) => {
-              setEditingTask(task);
-              setIsTaskModalOpen(true);
-            }}
-            onDelete={handleDeleteTask}
-            onOpenCreateModal={() => {
-              setEditingTask(null);
-              setIsTaskModalOpen(true);
-            }}
-            currentUserId={currentUser?.id}
-          />
-        ) : viewMode === 'list' ? (
-          <TaskListView
-            tasks={tasks}
-            onStatusChange={handleStatusChange}
-            onEdit={(task) => {
-              setEditingTask(task);
-              setIsTaskModalOpen(true);
-            }}
-            onDelete={handleDeleteTask}
-            currentUserId={currentUser?.id}
-          />
-        ) : (
-          <AnalyticsCharts
-            tasks={tasks}
-            stats={stats}
-            allUsers={allUsers}
-            onFilterByStatus={(st) => {
-              setStatusFilter(st);
-              setViewMode('kanban');
-            }}
-            onFilterByPriority={(pr) => {
-              setPriorityFilter(pr);
-              setViewMode('kanban');
-            }}
-          />
-        )}
-      </main>
+            />
+          )}
+        </main>
+      </div>
 
       {/* Task Create / Edit Modal */}
       <TaskModal
@@ -615,32 +747,6 @@ export default function DashboardPage() {
         onSelectUser={handleSelectUser}
         allUsers={allUsers}
       />
-
-      {/* Footer */}
-      <footer style={{
-        marginTop: '60px',
-        padding: '24px 28px',
-        borderTop: '1px solid var(--border-subtle)',
-        background: 'rgba(8, 12, 20, 0.95)',
-        textAlign: 'center',
-        fontSize: '12px',
-        color: 'var(--text-muted)',
-      }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            &copy; 2026 <strong>Hairdrama Tech</strong> &bull; Assignment for Tech Internship
-          </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <span>Supabase PostgreSQL</span>
-            <span>&bull;</span>
-            <span>Flask REST API</span>
-            <span>&bull;</span>
-            <span>Next.js + TypeScript</span>
-            <span>&bull;</span>
-            <span>Gmail SMTP Integration</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

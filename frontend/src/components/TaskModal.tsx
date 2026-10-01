@@ -97,8 +97,8 @@ export function TaskModal({
       right: 0,
       bottom: 0,
       zIndex: 1000,
-      background: 'rgba(3, 7, 18, 0.8)',
-      backdropFilter: 'blur(8px)',
+      background: 'var(--modal-backdrop)',
+      backdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -119,17 +119,17 @@ export function TaskModal({
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
               {initialData ? 'Edit Task' : 'Create New Task'}
             </h2>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {initialData ? 'Update task attributes and assignment' : 'Add task and notify team members via Gmail'}
             </p>
           </div>
           <button
             onClick={onClose}
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'var(--tag-bg)',
               border: 'none',
               borderRadius: '8px',
               padding: '6px',
@@ -162,7 +162,7 @@ export function TaskModal({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Title Input */}
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Task Title <span style={{ color: '#f87171' }}>*</span>
             </label>
             <input
@@ -173,11 +173,11 @@ export function TaskModal({
               required
               style={{
                 width: '100%',
-                background: 'rgba(255, 255, 255, 0.04)',
+                background: 'var(--surface-card-hover)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '8px',
                 padding: '10px 14px',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 fontSize: '14px',
                 outline: 'none',
               }}
@@ -186,7 +186,7 @@ export function TaskModal({
 
           {/* Description Textarea */}
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Description
             </label>
             <textarea
@@ -196,11 +196,11 @@ export function TaskModal({
               rows={3}
               style={{
                 width: '100%',
-                background: 'rgba(255, 255, 255, 0.04)',
+                background: 'var(--surface-card-hover)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: '8px',
                 padding: '10px 14px',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 fontSize: '13px',
                 outline: 'none',
                 resize: 'vertical',
@@ -210,7 +210,7 @@ export function TaskModal({
 
           {/* Priority Selector */}
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '8px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Priority Level
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -223,7 +223,7 @@ export function TaskModal({
                     padding: '8px',
                     borderRadius: '8px',
                     border: priority === p.id ? `2px solid ${p.color}` : '1px solid var(--border-subtle)',
-                    background: priority === p.id ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                    background: priority === p.id ? 'var(--primary-glow)' : 'var(--tag-bg)',
                     color: priority === p.id ? p.color : 'var(--text-secondary)',
                     fontWeight: 600,
                     fontSize: '12px',
@@ -241,7 +241,7 @@ export function TaskModal({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             {/* Due Date */}
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Due Date
               </label>
               <div style={{ position: 'relative' }}>
@@ -251,14 +251,13 @@ export function TaskModal({
                   onChange={(e) => setDueDate(e.target.value)}
                   style={{
                     width: '100%',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--surface-card-hover)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '10px 14px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '13px',
                     outline: 'none',
-                    colorScheme: 'dark',
                   }}
                 />
               </div>
@@ -266,7 +265,7 @@ export function TaskModal({
 
             {/* Assignee Dropdown */}
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#f1f5f9', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Assign To (Team Member)
               </label>
               <select
@@ -274,22 +273,21 @@ export function TaskModal({
                 onChange={(e) => setAssignedTo(e.target.value)}
                 style={{
                   width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--surface-card-hover)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '8px',
                   padding: '10px 14px',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   fontSize: '13px',
                   outline: 'none',
                   cursor: 'pointer',
-                  colorScheme: 'dark',
                 }}
               >
-                <option value="" style={{ background: '#0f172a', color: '#cbd5e1' }}>
+                <option value="" style={{ background: 'var(--surface-card)', color: 'var(--text-muted)' }}>
                   Unassigned
                 </option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id} style={{ background: '#0f172a', color: '#ffffff' }}>
+                  <option key={u.id} value={u.id} style={{ background: 'var(--surface-card)', color: 'var(--text-primary)' }}>
                     {u.full_name} ({u.email})
                   </option>
                 ))}
@@ -307,13 +305,13 @@ export function TaskModal({
             alignItems: 'flex-start',
             gap: '12px',
           }}>
-            <Mail size={18} color="#818cf8" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <Mail size={18} color="var(--primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <strong style={{ color: '#ffffff' }}>Automated Gmail Integration:</strong>{' '}
+              <strong style={{ color: 'var(--text-primary)' }}>Automated Gmail Integration:</strong>{' '}
               {selectedUser ? (
                 <>
                   An email notification will be sent directly to{' '}
-                  <span style={{ color: '#818cf8', fontWeight: 600 }}>{selectedUser.email}</span>{' '}
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{selectedUser.email}</span>{' '}
                   alerting them of this assignment.
                 </>
               ) : (

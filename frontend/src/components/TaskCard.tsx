@@ -60,9 +60,9 @@ export function TaskCard({
         marginBottom: '12px',
         position: 'relative',
         cursor: 'default',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        borderTop: '1px solid var(--border-subtle)',
+        borderRight: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--border-subtle)',
         borderLeft: `4px solid ${priorityConfig.color}`,
         borderRadius: '12px',
       }}
@@ -131,7 +131,7 @@ export function TaskCard({
       <h3 style={{
         fontSize: '14px',
         fontWeight: 600,
-        color: '#f8fafc',
+        color: 'var(--text-primary)',
         marginBottom: '6px',
         lineHeight: 1.4,
       }}>
@@ -142,7 +142,7 @@ export function TaskCard({
       {task.description && (
         <p style={{
           fontSize: '12px',
-          color: '#cbd5e1',
+          color: 'var(--text-secondary)',
           lineHeight: 1.5,
           marginBottom: '14px',
           display: '-webkit-box',
@@ -161,15 +161,15 @@ export function TaskCard({
           alignItems: 'center', 
           gap: '6px', 
           fontSize: '11px', 
-          color: isOverdue ? '#fca5a5' : '#cbd5e1',
-          background: isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-          border: isOverdue ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+          color: isOverdue ? '#fca5a5' : 'var(--text-secondary)',
+          background: isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'var(--tag-bg)',
+          border: isOverdue ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border-subtle)',
           padding: '3px 8px',
           borderRadius: '6px',
           marginBottom: '12px',
           fontWeight: isOverdue ? 600 : 500
         }}>
-          <Calendar size={12} color={isOverdue ? '#f87171' : '#818cf8'} />
+          <Calendar size={12} color={isOverdue ? '#f87171' : 'var(--primary)'} />
           <span>Due {formattedDueDate}</span>
           {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px', color: '#f87171' }}>• Overdue</span>}
         </div>
@@ -207,12 +207,12 @@ export function TaskCard({
                   task.assignee.full_name?.charAt(0) || 'U'
                 )}
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#ffffff', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {task.assignee.full_name?.split(' ')[0]}
               </span>
             </div>
           ) : (
-            <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 500 }}>
               Unassigned
             </span>
           )}

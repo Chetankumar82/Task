@@ -34,7 +34,7 @@ export function TaskListView({
         style={{
           padding: '48px 24px',
           textAlign: 'center',
-          color: '#cbd5e1',
+          color: 'var(--text-muted)',
           fontSize: '14px',
         }}
       >
@@ -47,13 +47,13 @@ export function TaskListView({
     <div className="glass-panel" style={{ overflowX: 'auto', borderRadius: '16px' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255, 255, 255, 0.02)' }}>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Task Title & Description</th>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Status</th>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Priority</th>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Assignee</th>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600 }}>Due Date</th>
-            <th style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+          <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'var(--table-header-bg)' }}>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Task Title & Description</th>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Status</th>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Priority</th>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Assignee</th>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600 }}>Due Date</th>
+            <th style={{ padding: '14px 18px', color: 'var(--text-muted)', fontWeight: 600, textAlign: 'right' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -70,18 +70,18 @@ export function TaskListView({
                   borderBottom: '1px solid var(--border-subtle)',
                   transition: 'background 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--table-hover-bg)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 {/* Title & Description */}
                 <td style={{ padding: '14px 18px', maxWidth: '320px' }}>
-                  <div style={{ fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                     {task.title}
                   </div>
                   {task.description && (
                     <div style={{ 
                       fontSize: '12px', 
-                      color: '#cbd5e1', 
+                      color: 'var(--text-secondary)', 
                       overflow: 'hidden', 
                       textOverflow: 'ellipsis', 
                       whiteSpace: 'nowrap' 
@@ -138,6 +138,7 @@ export function TaskListView({
                         justifyContent: 'center',
                         fontSize: '10px',
                         fontWeight: 600,
+                        color: '#ffffff',
                       }}>
                         {task.assignee.avatar_url ? (
                           <img src={task.assignee.avatar_url} alt="" style={{ width: '100%', height: '100%' }} />
@@ -145,17 +146,17 @@ export function TaskListView({
                           task.assignee.full_name?.charAt(0) || 'U'
                         )}
                       </div>
-                      <span style={{ color: '#ffffff', fontWeight: 500 }}>{task.assignee.full_name}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{task.assignee.full_name}</span>
                     </div>
                   ) : (
-                    <span style={{ color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>Unassigned</span>
+                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 500 }}>Unassigned</span>
                   )}
                 </td>
 
                 {/* Due Date */}
-                <td style={{ padding: '14px 18px', color: '#cbd5e1', fontWeight: 500 }}>
+                <td style={{ padding: '14px 18px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={12} color="#818cf8" />
+                    <Clock size={12} color="var(--primary)" />
                     <span>{formattedDate}</span>
                   </div>
                 </td>
@@ -201,7 +202,7 @@ export function TaskListView({
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#cbd5e1',
+                        color: 'var(--text-muted)',
                         cursor: 'pointer',
                         padding: '4px',
                       }}

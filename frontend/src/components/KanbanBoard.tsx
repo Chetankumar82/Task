@@ -67,19 +67,20 @@ export function KanbanBoard({
           <div
             key={col.status}
             style={{
-              background: 'linear-gradient(180deg, rgba(20, 29, 47, 0.7) 0%, rgba(11, 17, 30, 0.8) 100%)',
+              background: 'var(--surface-column)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '16px',
               borderTop: `3px solid ${col.color}`,
-              borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRight: '1px solid var(--border-subtle)',
+              borderBottom: '1px solid var(--border-subtle)',
+              borderLeft: '1px solid var(--border-subtle)',
               padding: '18px 16px',
-              minHeight: '500px',
+              minHeight: '520px',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 12px 32px -8px rgba(0, 0, 0, 0.5)',
+              boxShadow: 'var(--card-shadow)',
+              transition: 'background-color 0.2s ease, border-color 0.2s ease',
             }}
           >
             {/* Column Header */}
@@ -89,7 +90,7 @@ export function KanbanBoard({
               justifyContent: 'space-between',
               marginBottom: '16px',
               paddingBottom: '12px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: '1px solid var(--border-subtle)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
@@ -104,7 +105,7 @@ export function KanbanBoard({
                 }}>
                   <Icon size={14} color={col.color} />
                 </div>
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.2px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
                   {col.title}
                 </span>
                 <span style={{
@@ -124,19 +125,19 @@ export function KanbanBoard({
                 <button
                   onClick={onOpenCreateModal}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--tag-bg)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '7px',
                     padding: '5px',
-                    color: '#cbd5e1',
+                    color: 'var(--text-secondary)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     transition: 'all 0.15s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; e.currentTarget.style.color = '#ffffff'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; e.currentTarget.style.color = '#cbd5e1'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-card-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--tag-bg)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   title="Add Task to Pending"
                 >
                   <Plus size={14} />
@@ -163,7 +164,7 @@ export function KanbanBoard({
                   textAlign: 'center',
                   border: '1px dashed var(--border-subtle)',
                   borderRadius: '12px',
-                  color: '#cbd5e1',
+                  color: 'var(--text-muted)',
                   fontSize: '12px',
                 }}>
                   No tasks in {col.title.toLowerCase()}

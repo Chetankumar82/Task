@@ -112,17 +112,21 @@ export function StatsCards({
               overflow: 'hidden',
               cursor: 'pointer',
               borderTop: `3px solid ${card.color}`,
-              borderRight: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
-              borderBottom: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
-              borderLeft: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
+              borderRight: card.isActive ? `2px solid ${card.color}` : '1px solid var(--border-subtle)',
+              borderBottom: card.isActive ? `2px solid ${card.color}` : '1px solid var(--border-subtle)',
+              borderLeft: card.isActive ? `2px solid ${card.color}` : '1px solid var(--border-subtle)',
               boxShadow: card.isActive 
-                ? `0 0 24px ${card.bgGlow}, 0 12px 30px -10px rgba(0, 0, 0, 0.7)` 
-                : '0 10px 25px -10px rgba(0, 0, 0, 0.5)',
+                ? `0 0 24px ${card.bgGlow}, var(--card-shadow)` 
+                : 'var(--card-shadow)',
             }}
           >
             {/* Top Row: Title + Icon */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: card.isActive ? '#ffffff' : '#cbd5e1' }}>
+              <span style={{ 
+                fontSize: '13px', 
+                fontWeight: 600, 
+                color: card.isActive ? 'var(--text-primary)' : 'var(--text-secondary)' 
+              }}>
                 {card.title}
               </span>
               <div style={{
@@ -130,7 +134,7 @@ export function StatsCards({
                 height: '36px',
                 borderRadius: '10px',
                 background: card.bgGlow,
-                border: `1px solid ${card.color}30`,
+                border: `1px solid ${card.color}40`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -146,14 +150,14 @@ export function StatsCards({
                 fontWeight: 800, 
                 fontFamily: 'var(--font-display)',
                 letterSpacing: '-0.5px',
-                color: '#ffffff' 
+                color: 'var(--text-primary)' 
               }}>
                 {card.value}
               </span>
             </div>
 
             {/* Subtext with High Contrast */}
-            <div style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>
               {card.subtext}
             </div>
 
@@ -162,7 +166,7 @@ export function StatsCards({
               <div style={{
                 width: '100%',
                 height: '4px',
-                background: 'rgba(255, 255, 255, 0.08)',
+                background: 'var(--border-subtle)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
                 marginTop: '12px',

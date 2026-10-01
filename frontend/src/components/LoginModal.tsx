@@ -112,8 +112,8 @@ export function LoginModal({
       right: 0,
       bottom: 0,
       zIndex: 1000,
-      background: 'rgba(3, 7, 18, 0.85)',
-      backdropFilter: 'blur(10px)',
+      background: 'var(--modal-backdrop)',
+      backdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -127,7 +127,7 @@ export function LoginModal({
           padding: '28px',
           position: 'relative',
           border: '1px solid var(--border-medium)',
-          boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.7)',
+          boxShadow: 'var(--card-shadow)',
           maxHeight: '90vh',
           overflowY: 'auto',
         }}
@@ -138,7 +138,7 @@ export function LoginModal({
             position: 'absolute',
             top: '18px',
             right: '18px',
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'var(--tag-bg)',
             border: 'none',
             borderRadius: '8px',
             padding: '6px',
@@ -164,10 +164,10 @@ export function LoginModal({
           }}>
             <Sparkles size={22} color="#ffffff" />
           </div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             Hairdrama Tech Workspace
           </h2>
-          <p style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '4px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Sign in to manage and assign tasks with automated Gmail notifications
           </p>
         </div>
@@ -175,11 +175,12 @@ export function LoginModal({
         {/* Tab Navigation */}
         <div style={{
           display: 'flex',
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'var(--tag-bg)',
           borderRadius: '10px',
           padding: '4px',
           marginBottom: '20px',
           gap: '4px',
+          border: '1px solid var(--border-subtle)',
         }}>
           <button
             onClick={() => setActiveTab('google')}
@@ -188,15 +189,16 @@ export function LoginModal({
               padding: '8px 12px',
               borderRadius: '8px',
               border: 'none',
-              background: activeTab === 'google' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-              color: activeTab === 'google' ? '#ffffff' : '#cbd5e1',
-              fontWeight: 600,
+              background: activeTab === 'google' ? 'var(--surface-card)' : 'transparent',
+              color: activeTab === 'google' ? 'var(--primary)' : 'var(--text-muted)',
+              fontWeight: 700,
               fontSize: '12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
+              boxShadow: activeTab === 'google' ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
@@ -210,15 +212,16 @@ export function LoginModal({
               padding: '8px 12px',
               borderRadius: '8px',
               border: 'none',
-              background: activeTab === 'demo' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-              color: activeTab === 'demo' ? '#ffffff' : '#cbd5e1',
-              fontWeight: 600,
+              background: activeTab === 'demo' ? 'var(--surface-card)' : 'transparent',
+              color: activeTab === 'demo' ? 'var(--primary)' : 'var(--text-muted)',
+              fontWeight: 700,
               fontSize: '12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
+              boxShadow: activeTab === 'demo' ? '0 2px 6px rgba(0,0,0,0.1)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
@@ -320,7 +323,7 @@ export function LoginModal({
 
             {/* Seamless Gmail Direct Sign In Form */}
             <div style={{
-              background: 'rgba(255, 255, 255, 0.03)',
+              background: 'var(--tag-bg)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               padding: '14px',
@@ -337,8 +340,8 @@ export function LoginModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Mail size={15} color="#818cf8" />
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
+                  <Mail size={15} color="var(--primary)" />
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     Sign in with any Gmail address
                   </span>
                 </div>
@@ -365,11 +368,11 @@ export function LoginModal({
                     required
                     style={{
                       width: '100%',
-                      background: 'rgba(255, 255, 255, 0.05)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-subtle)',
                       borderRadius: '8px',
                       padding: '8px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none',
                     }}
@@ -382,11 +385,11 @@ export function LoginModal({
                     required
                     style={{
                       width: '100%',
-                      background: 'rgba(255, 255, 255, 0.05)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-subtle)',
                       borderRadius: '8px',
                       padding: '8px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none',
                     }}
@@ -409,7 +412,7 @@ export function LoginModal({
         {/* Tab 2: 1-Click Demo Reviewer Profiles */}
         {activeTab === 'demo' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-            <p style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
               Select a reviewer account to instantly explore task assignment and management:
             </p>
             {allUsers.slice(0, 3).map((u) => (
@@ -423,18 +426,18 @@ export function LoginModal({
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.03)',
+                  background: 'var(--tag-bg)',
                   border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-card-hover)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--tag-bg)'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
@@ -447,6 +450,8 @@ export function LoginModal({
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '12px',
+                    color: '#ffffff',
+                    fontWeight: 700,
                   }}>
                     {u.avatar_url ? (
                       <img src={u.avatar_url} alt="" style={{ width: '100%', height: '100%' }} />
@@ -455,11 +460,11 @@ export function LoginModal({
                     )}
                   </div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{u.full_name}</div>
-                    <div style={{ fontSize: '11px', color: '#cbd5e1' }}>{u.email}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{u.full_name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.email}</div>
                   </div>
                 </div>
-                <ChevronRight size={15} color="#cbd5e1" />
+                <ChevronRight size={15} color="var(--text-muted)" />
               </button>
             ))}
           </div>
@@ -467,14 +472,15 @@ export function LoginModal({
 
         {/* Footer Architecture Note */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.02)',
+          background: 'var(--tag-bg)',
           borderRadius: '8px',
           padding: '8px 12px',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           fontSize: '11px',
-          color: '#cbd5e1',
+          color: 'var(--text-secondary)',
+          border: '1px solid var(--border-subtle)',
         }}>
           <ShieldCheck size={15} color="#34d399" />
           <span>Real-time email dispatches via Gmail SMTP on task create &amp; complete.</span>
