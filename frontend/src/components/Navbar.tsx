@@ -10,7 +10,8 @@ import {
   Mail, 
   Database, 
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  LogIn
 } from 'lucide-react';
 import { UserProfile, SystemHealth } from '@/lib/types';
 import { signOutUser } from '@/lib/supabase';
@@ -133,17 +134,7 @@ export function Navbar({
             <Activity size={13} color="var(--text-muted)" />
           </button>
 
-          {/* Quick Create Task Button */}
-          {currentUser && (
-            <button
-              onClick={onOpenCreateModal}
-              className="btn-primary"
-              style={{ fontSize: '13px', padding: '8px 16px' }}
-            >
-              <Plus size={16} />
-              <span>Create Task</span>
-            </button>
-          )}
+          {/* User Account / Profile Menu */}
 
           {/* User Account / Profile Menu */}
           {currentUser ? (
@@ -324,10 +315,10 @@ export function Navbar({
             <button
               onClick={onOpenLoginModal}
               className="btn-primary"
-              style={{ fontSize: '13px', padding: '8px 16px' }}
+              style={{ fontSize: '13px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <User size={15} />
-              <span>Sign In with Google</span>
+              <LogIn size={15} />
+              <span>Sign In</span>
             </button>
           )}
         </div>

@@ -248,39 +248,6 @@ export default function DashboardPage() {
 
       {/* Main Content Container */}
       <main style={{ flex: 1, maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '32px 28px' }}>
-        {/* Guest / Signed-Out Mode Callout Banner */}
-        {!currentUser && (
-          <div 
-            className="glass-panel animate-fade-in"
-            style={{
-              padding: '18px 24px',
-              marginBottom: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.12) 100%)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '3px' }}>
-                You are currently signed out (Guest Mode)
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                Sign in with your Google / Gmail account to create, manage, and assign tasks with automated email dispatches.
-              </div>
-            </div>
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="btn-primary"
-              style={{ fontSize: '13px', padding: '10px 20px', whiteSpace: 'nowrap' }}
-            >
-              Sign In with Google
-            </button>
-          </div>
-        )}
-
         {/* Welcome Hero Banner */}
         <div style={{
           display: 'flex',
@@ -307,10 +274,17 @@ export default function DashboardPage() {
               letterSpacing: '-0.5px',
               color: '#ffffff',
             }}>
-              Welcome back, <span className="gradient-text">{currentUser?.full_name?.split(' ')[0] || 'Team'}</span> 👋
+              {currentUser ? (
+                <>Welcome back, <span className="gradient-text">{currentUser.full_name?.split(' ')[0]}</span> 👋</>
+              ) : (
+                <>Task Management for <span className="gradient-text">Product Teams</span></>
+              )}
             </h1>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '640px' }}>
-              Create, organize, and assign tasks across team members with real-time Gmail email dispatch on task creation and completion.
+              {currentUser 
+                ? 'Create, organize, and assign tasks across team members with real-time Gmail email dispatch on task creation and completion.'
+                : 'Sign in with your Google or Gmail account to assign tasks to teammates and receive automated email dispatches.'
+              }
             </p>
           </div>
 
@@ -326,17 +300,28 @@ export default function DashboardPage() {
               <span>Refresh</span>
             </button>
 
-            <button
-              onClick={() => {
-                setEditingTask(null);
-                setIsTaskModalOpen(true);
-              }}
-              className="btn-primary"
-              style={{ fontSize: '13px', padding: '10px 20px' }}
-            >
-              <Plus size={16} />
-              <span>Create Task</span>
-            </button>
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  setEditingTask(null);
+                  setIsTaskModalOpen(true);
+                }}
+                className="btn-primary"
+                style={{ fontSize: '13px', padding: '10px 20px' }}
+              >
+                <Plus size={16} />
+                <span>Create Task</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="btn-primary"
+                style={{ fontSize: '13px', padding: '10px 20px' }}
+              >
+                <Sparkles size={16} />
+                <span>Sign In to Get Started</span>
+              </button>
+            )}
           </div>
         </div>
 
