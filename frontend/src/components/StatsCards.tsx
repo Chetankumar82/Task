@@ -111,10 +111,10 @@ export function StatsCards({
               position: 'relative',
               overflow: 'hidden',
               cursor: 'pointer',
-              border: card.isActive 
-                ? `2px solid ${card.color}` 
-                : '1px solid rgba(255, 255, 255, 0.08)',
               borderTop: `3px solid ${card.color}`,
+              borderRight: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
+              borderLeft: card.isActive ? `2px solid ${card.color}` : '1px solid rgba(255, 255, 255, 0.08)',
               boxShadow: card.isActive 
                 ? `0 0 24px ${card.bgGlow}, 0 12px 30px -10px rgba(0, 0, 0, 0.7)` 
                 : '0 10px 25px -10px rgba(0, 0, 0, 0.5)',

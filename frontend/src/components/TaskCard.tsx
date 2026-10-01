@@ -60,7 +60,9 @@ export function TaskCard({
         marginBottom: '12px',
         position: 'relative',
         cursor: 'default',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         borderLeft: `4px solid ${priorityConfig.color}`,
         borderRadius: '12px',
       }}
