@@ -9,7 +9,8 @@ import {
   ArrowRight, 
   AlertCircle,
   Mail,
-  UserPlus
+  UserPlus,
+  ExternalLink
 } from 'lucide-react';
 import { signInWithGoogle, isSupabaseConfigured } from '@/lib/supabase';
 import { UserProfile } from '@/lib/types';
@@ -30,6 +31,7 @@ export function LoginModal({
 }: LoginModalProps) {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showProviderSetupHelp, setShowProviderSetupHelp] = useState(false);
   
   // Custom Gmail Sign In Form state
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -42,10 +44,16 @@ export function LoginModal({
   const handleGoogleLogin = async () => {
     setLoadingGoogle(true);
     setErrorMessage('');
+    setShowProviderSetupHelp(false);
     try {
       const res = await signInWithGoogle();
       if (res?.error) {
-        setErrorMessage(res.error);
+        if (res.code === 'PROVIDER_DISABLED' || res.error.toLowerCase().includes('not enabled') || res.error.toLowerCase().includes('unsupported provider')) {
+          setShowProviderSetupHelp(true);
+          setErrorMessage('');
+        } else {
+          setErrorMessage(res.error);
+        }
         setLoadingGoogle(false);
       }
     } catch (err: unknown) {
@@ -176,6 +184,54 @@ export function LoginModal({
           }}>
             <AlertCircle size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
             <div>{errorMessage}</div>
+          </div>
+        )}
+
+        {showProviderSetupHelp && (
+          <div style={{
+            background: 'rgba(99, 102, 241, 0.12)',
+            border: '1px solid rgba(99, 102, 241, 0.35)',
+            borderRadius: '10px',
+            padding: '16px',
+            marginBottom: '18px',
+            textAlign: 'left',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c7d2fe', fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>
+              <AlertCircle size={16} color="#818cf8" />
+              <span>Google OAuth Setup Needed in Supabase</span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.5', marginBottom: '10px' }}>
+              Google OAuth is disabled by default in your Supabase project (<strong>nrdgqzkmcuoorpeukghm</strong>). To activate real Google logins:
+            </p>
+            <ol style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '18px', lineHeight: '1.6', marginBottom: '14px' }}>
+              <li>Open your Supabase Providers dashboard.</li>
+              <li>Expand <strong>Google</strong> and toggle <strong>Enable Google provider</strong>.</li>
+              <li>Provide your Google Cloud <strong>Client ID</strong> &amp; <strong>Secret</strong>.</li>
+              <li>Redirect URI: <code style={{ color: '#818cf8', background: 'rgba(0,0,0,0.3)', padding: '2px 5px', borderRadius: '4px' }}>https://nrdgqzkmcuoorpeukghm.supabase.co/auth/v1/callback</code></li>
+            </ol>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <a
+                href="https://supabase.com/dashboard/project/nrdgqzkmcuoorpeukghm/auth/providers"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary"
+                style={{ fontSize: '12px', padding: '7px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <span>Open Supabase Providers</span>
+                <ExternalLink size={13} />
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProviderSetupHelp(false);
+                  setShowCustomForm(true);
+                }}
+                className="btn-secondary"
+                style={{ fontSize: '12px', padding: '7px 12px' }}
+              >
+                Sign in with Gmail directly
+              </button>
+            </div>
           </div>
         )}
 

@@ -24,7 +24,7 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
 /**
  * Initiates Google OAuth Login Flow via Supabase.
  */
-export async function signInWithGoogle(): Promise<{ error?: string }> {
+export async function signInWithGoogle(): Promise<{ error?: string; code?: string }> {
   if (!supabase) {
     return {
       error: 'Supabase credentials not configured in frontend/.env.local. Please provide NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
@@ -32,10 +32,12 @@ export async function signInWithGoogle(): Promise<{ error?: string }> {
   }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-  const { error } = await supabase.auth.signInWithOAuth({
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: `${origin}/auth/callback`,
+      skipBrowserRedirect: true,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -44,14 +46,34 @@ export async function signInWithGoogle(): Promise<{ error?: string }> {
   });
 
   if (error) {
-    if (error.message.toLowerCase().includes('not enabled') || error.message.toLowerCase().includes('unsupported provider')) {
-      return { 
-        error: 'Google OAuth is not enabled in your Supabase project yet. Enable it at: https://supabase.com/dashboard/project/nrdgqzkmcuoorpeukghm/auth/providers' 
-      };
-    }
     return { error: error.message };
   }
-  return {};
+
+  if (data?.url) {
+    try {
+      // Pre-flight check: test if Supabase has Google provider enabled
+      const res = await fetch(data.url, { method: 'GET' });
+      if (res.status === 400) {
+        const text = await res.text();
+        if (text.includes('Unsupported provider') || text.includes('not enabled')) {
+          return {
+            code: 'PROVIDER_DISABLED',
+            error: 'Google OAuth is not enabled in your Supabase project yet.'
+          };
+        }
+      }
+    } catch {
+      // If CORS blocks or redirects, proceed with navigation
+    }
+
+    // Provider is enabled - redirect to Google
+    if (typeof window !== 'undefined') {
+      window.location.href = data.url;
+    }
+    return {};
+  }
+
+  return { error: 'Failed to generate Google authentication URL.' };
 }
 
 /**

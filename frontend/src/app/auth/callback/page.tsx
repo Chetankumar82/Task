@@ -18,6 +18,15 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        const code = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('code') : null;
+        if (code) {
+          try {
+            await supabase.auth.exchangeCodeForSession(code);
+          } catch (codeErr) {
+            console.warn('PKCE exchange error, trying getSession:', codeErr);
+          }
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -30,15 +39,22 @@ export default function AuthCallbackPage() {
           setStatusMessage('Synchronizing user profile with backend database...');
           const user = session.user;
           const userMeta = user.user_metadata || {};
+          const profileData = {
+            id: user.id,
+            email: user.email || '',
+            full_name: userMeta.full_name || userMeta.name || user.email?.split('@')[0] || 'User',
+            avatar_url: userMeta.avatar_url || userMeta.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || 'User')}`,
+          };
+
+          // Store in localStorage for fast UI hydration
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('active_demo_user', JSON.stringify(profileData));
+            localStorage.removeItem('user_logged_out');
+          }
 
           // Sync profile with backend
           try {
-            await api.syncUserProfile({
-              id: user.id,
-              email: user.email || '',
-              full_name: userMeta.full_name || userMeta.name || user.email?.split('@')[0] || 'User',
-              avatar_url: userMeta.avatar_url || userMeta.picture || '',
-            });
+            await api.syncUserProfile(profileData);
           } catch (syncErr) {
             console.warn('Profile sync fallback:', syncErr);
           }
