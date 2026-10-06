@@ -52,7 +52,7 @@ class GmailService:
             return True
 
         try:
-            print(f"[EmailService] Connecting to {Config.SMTP_SERVER}:{Config.SMTP_PORT} to send '{safe_subj}' to {to_email}...", flush=True)
+            print(f"[EmailService] Connecting to {Config.SMTP_SERVER} to send '{safe_subj}' to {to_email}...", flush=True)
             msg = MIMEMultipart("alternative")
             msg["From"] = f"Hairdrama Tech Tasks <{Config.GMAIL_USER}>"
             msg["To"] = to_email
@@ -62,20 +62,43 @@ class GmailService:
             msg.attach(MIMEText(plain_body, "plain", "utf-8"))
             msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-            # Connect to Gmail SMTP
-            with smtplib.SMTP(Config.SMTP_SERVER, Config.SMTP_PORT) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(Config.GMAIL_USER, Config.GMAIL_APP_PASSWORD)
-                server.send_message(msg)
+            clean_password = (Config.GMAIL_APP_PASSWORD or "").replace(" ", "").strip()
+            sent = False
+            last_error = None
 
-            print(f"[EmailService] SUCCESS: Delivered email to {to_email} (Subject: {safe_subj})", flush=True)
-            logger.info("[EmailService] Successfully delivered email to %s (Subject: %s)", to_email, safe_subj)
-            return True
+            # Attempt 1: Port 587 with STARTTLS (10s timeout)
+            try:
+                with smtplib.SMTP(Config.SMTP_SERVER, Config.SMTP_PORT, timeout=10) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(Config.GMAIL_USER, clean_password)
+                    server.send_message(msg)
+                sent = True
+            except Exception as e587:
+                last_error = e587
+                print(f"[EmailService] Port 587 attempt failed: {e587}. Trying Port 465 (SSL)...", flush=True)
+                # Attempt 2: Port 465 with SSL (10s timeout)
+                try:
+                    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server_ssl:
+                        server_ssl.ehlo()
+                        server_ssl.login(Config.GMAIL_USER, clean_password)
+                        server_ssl.send_message(msg)
+                    sent = True
+                except Exception as e465:
+                    last_error = e465
+                    print(f"[EmailService] Port 465 attempt failed: {e465}", flush=True)
+
+            if sent:
+                print(f"[EmailService] SUCCESS: Delivered email to {to_email} (Subject: {safe_subj})", flush=True)
+                logger.info("[EmailService] Successfully delivered email to %s (Subject: %s)", to_email, safe_subj)
+                return True
+            else:
+                print(f"[EmailService] ERROR: Failed to send email via Gmail SMTP to {to_email}: {last_error}", flush=True)
+                logger.error("[EmailService] Failed to send email via Gmail SMTP to %s: %s", to_email, last_error)
+                return False
         except Exception as e:
-            print(f"[EmailService] ERROR: Failed to send email via Gmail SMTP to {to_email}: {e}", flush=True)
-            logger.error("[EmailService] Failed to send email via Gmail SMTP to %s: %s", to_email, e)
+            print(f"[EmailService] ERROR in email building: {e}", flush=True)
             return False
 
     @classmethod

@@ -233,4 +233,4 @@ def test_email_endpoint():
             "success": False,
             "error": str(e),
             "type": type(e).__name__
-        }), 500
+        }), 200

@@ -22,8 +22,12 @@ if Config.SUPABASE_URL and (Config.SUPABASE_SERVICE_ROLE_KEY or Config.SUPABASE_
 
 def get_db_connection():
     if Config.DATABASE_URL:
+        db_url = Config.DATABASE_URL.strip()
+        if "sslmode" not in db_url and "localhost" not in db_url and "127.0.0.1" not in db_url:
+            separator = "&" if "?" in db_url else "?"
+            db_url = f"{db_url}{separator}sslmode=require"
         try:
-            return psycopg2.connect(Config.DATABASE_URL)
+            return psycopg2.connect(db_url, connect_timeout=10)
         except Exception as e:
             logger.error("Failed to connect to PostgreSQL: %s", e)
     return None
