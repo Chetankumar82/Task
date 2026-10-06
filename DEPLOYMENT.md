@@ -124,7 +124,7 @@ Automated task assignment and completion emails require a Google App Password:
    ```env
    FLASK_ENV=production
    SECRET_KEY=generate_a_random_32_byte_hex_string
-   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.xxxx.supabase.co:5432/postgres?sslmode=require
+   DATABASE_URL=postgresql://postgres.<project-ref>:[PASSWORD]@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require
    SUPABASE_URL=https://[YOUR-PROJECT].supabase.co
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    GMAIL_USER=your_email@gmail.com
