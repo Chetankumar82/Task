@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, request, jsonify, g
 from app.auth import require_auth
+from app.config import Config
 from app.services.supabase_client import DatabaseService
 from app.services.email_service import GmailService
 
@@ -214,23 +215,11 @@ def test_email_endpoint():
     """Diagnostic endpoint to test live Gmail SMTP delivery and report errors."""
     to_email = request.args.get("to") or Config.GMAIL_USER or "chetankumar8203@gmail.com"
     try:
-        success = GmailService._send_smtp_email(
-            to_email=to_email,
-            subject="[Hairdrama Test] Diagnostics Email",
-            html_body="<p>Diagnostic test from backend</p>",
-            plain_body="Diagnostic test from backend"
-        )
-        return jsonify({
-            "success": success,
-            "to": to_email,
-            "gmail_user": Config.GMAIL_USER,
-            "app_password_len": len(Config.GMAIL_APP_PASSWORD) if Config.GMAIL_APP_PASSWORD else 0,
-            "smtp_server": Config.SMTP_SERVER,
-            "smtp_port": Config.SMTP_PORT
-        }), 200
+        report = GmailService.diagnose_smtp(to_email)
+        return jsonify(report), 200
     except Exception as e:
         return jsonify({
-            "success": False,
+            "delivered": False,
             "error": str(e),
             "type": type(e).__name__
         }), 200

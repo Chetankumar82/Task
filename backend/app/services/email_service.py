@@ -102,6 +102,60 @@ class GmailService:
             return False
 
     @classmethod
+    def diagnose_smtp(cls, to_email: str) -> Dict[str, Any]:
+        """Performs step-by-step diagnostic test of Gmail SMTP and returns comprehensive report."""
+        clean_password = (Config.GMAIL_APP_PASSWORD or "").replace(" ", "").strip()
+        report: Dict[str, Any] = {
+            "is_configured": cls.is_configured(),
+            "gmail_user": Config.GMAIL_USER,
+            "password_configured": bool(Config.GMAIL_APP_PASSWORD),
+            "password_length": len(clean_password),
+            "recipient": to_email,
+            "smtp_server": Config.SMTP_SERVER,
+            "attempts": {},
+            "delivered": False
+        }
+
+        if not cls.is_configured():
+            report["error"] = "Gmail credentials not configured."
+            return report
+
+        msg = MIMEMultipart("alternative")
+        msg["From"] = f"Hairdrama Tech Tasks <{Config.GMAIL_USER}>"
+        msg["To"] = to_email
+        msg["Subject"] = Header("[Hairdrama] Diagnostic Verification Email", "utf-8")
+        msg.attach(MIMEText("This is an automated diagnostic test from Hairdrama Tech backend.", "plain", "utf-8"))
+        msg.attach(MIMEText("<p>This is an automated diagnostic test from Hairdrama Tech backend.</p>", "html", "utf-8"))
+
+        # Test Port 587
+        try:
+            with smtplib.SMTP(Config.SMTP_SERVER, 587, timeout=10) as s587:
+                s587.ehlo()
+                s587.starttls()
+                s587.ehlo()
+                s587.login(Config.GMAIL_USER, clean_password)
+                s587.send_message(msg)
+            report["attempts"]["port_587"] = {"status": "success", "error": None}
+            report["delivered"] = True
+            return report
+        except Exception as e:
+            report["attempts"]["port_587"] = {"status": "failed", "error": f"{type(e).__name__}: {str(e)}"}
+
+        # Test Port 465
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as s465:
+                s465.ehlo()
+                s465.login(Config.GMAIL_USER, clean_password)
+                s465.send_message(msg)
+            report["attempts"]["port_465"] = {"status": "success", "error": None}
+            report["delivered"] = True
+            return report
+        except Exception as e:
+            report["attempts"]["port_465"] = {"status": "failed", "error": f"{type(e).__name__}: {str(e)}"}
+
+        return report
+
+    @classmethod
     def send_async(cls, to_email: str, subject: str, html_body: str, plain_body: str):
         """Dispatches email asynchronously so client requests aren't blocked."""
         executor.submit(cls._send_smtp_email, to_email, subject, html_body, plain_body)

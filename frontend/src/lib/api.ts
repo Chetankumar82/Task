@@ -23,6 +23,9 @@ class ApiClient {
         try {
           const demoUser = JSON.parse(demoUserJson);
           headers['X-Mock-User-Id'] = demoUser.id;
+          if (!token && demoUser.id) {
+            headers['Authorization'] = `Bearer mock-user-${demoUser.id}`;
+          }
         } catch {
           // ignore
         }

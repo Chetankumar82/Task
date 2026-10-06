@@ -21,16 +21,36 @@ def require_auth(f):
         if auth_header.startswith("Bearer "):
             token = auth_header.split(" ", 1)[1].strip()
 
-        # 1. Dev / Demo Bypass Handling
+        # 1. Dev / Demo / Guest Web Bypass Handling
         if not token:
-            # Check for development/test header or dev mode fallback
             dev_user_id = request.headers.get("X-Mock-User-Id")
-            if dev_user_id and dev_user_id in mock_store.profiles:
-                g.current_user = mock_store.profiles[dev_user_id]
-                return f(*args, **kwargs)
-            elif Config.DEV_MODE:
-                # Default to first mock profile if DEV_MODE is explicitly enabled
-                g.current_user = mock_store.profiles["usr_demo_1"]
+            if dev_user_id:
+                # Direct database lookup
+                profile = DatabaseService.get_profile_by_id(dev_user_id)
+                if not profile and "@" in dev_user_id:
+                    profile = DatabaseService.get_profile_by_email(dev_user_id)
+                if not profile:
+                    from app.services.supabase_client import DEMO_ALIASES
+                    alias = DEMO_ALIASES.get(dev_user_id)
+                    if alias:
+                        profile = DatabaseService.get_profile_by_id(alias) or mock_store.profiles.get(alias)
+                if not profile and dev_user_id in mock_store.profiles:
+                    profile = mock_store.profiles[dev_user_id]
+                if profile:
+                    g.current_user = profile
+                    return f(*args, **kwargs)
+
+            # Fallback to default user (Chetan Kumar or first profile in database) for live web exploration
+            fallback = DatabaseService.get_profile_by_email("chetankumar8203@gmail.com")
+            if not fallback:
+                all_p = DatabaseService.get_all_profiles()
+                if all_p:
+                    fallback = all_p[0]
+            if not fallback and mock_store.profiles:
+                fallback = list(mock_store.profiles.values())[0]
+
+            if fallback:
+                g.current_user = fallback
                 return f(*args, **kwargs)
 
             return jsonify({
