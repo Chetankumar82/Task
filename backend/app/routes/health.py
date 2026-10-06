@@ -13,23 +13,43 @@ def health_check():
     """
     Production health check endpoint for monitoring uptime on Render, Railway, or Vercel.
     """
-    is_supabase_connected = DatabaseService.is_live_supabase()
+    from app.services.supabase_client import get_db_connection
     is_gmail_configured = GmailService.is_configured()
+    
+    db_test_ok = False
+    db_test_err = None
+    try:
+        conn = get_db_connection()
+        if conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1;")
+                cur.fetchone()
+            conn.close()
+            db_test_ok = True
+        else:
+            db_test_err = "get_db_connection returned None (check DATABASE_URL)"
+    except Exception as e:
+        db_test_err = str(e)
 
     return jsonify({
-        "status": "healthy",
+        "status": "healthy" if db_test_ok else "degraded",
         "service": "hairdrama-task-api",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": {
-            "type": "supabase_postgresql" if is_supabase_connected else "in_memory_mock",
-            "connected": True
+            "type": "supabase_postgresql" if db_test_ok else "in_memory_mock",
+            "connected": db_test_ok,
+            "error": db_test_err
         },
         "email_service": {
             "provider": "gmail_smtp",
             "configured": is_gmail_configured,
+            "gmail_user": Config.GMAIL_USER,
+            "password_configured": bool(Config.GMAIL_APP_PASSWORD),
             "smtp_server": Config.SMTP_SERVER,
             "smtp_port": Config.SMTP_PORT
-        }
+        },
+        "app_public_url": Config.APP_PUBLIC_URL,
+        "frontend_url": Config.FRONTEND_URL
     }), 200
 
 

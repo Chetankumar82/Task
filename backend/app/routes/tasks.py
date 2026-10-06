@@ -207,3 +207,30 @@ def delete_task(task_id):
     if success:
         return jsonify({"success": True, "message": "Task deleted successfully."}), 200
     return jsonify({"error": "Internal Error", "message": "Failed to delete task."}), 500
+
+
+@tasks_bp.route("/test-email", methods=["GET"])
+def test_email_endpoint():
+    """Diagnostic endpoint to test live Gmail SMTP delivery and report errors."""
+    to_email = request.args.get("to") or Config.GMAIL_USER or "chetankumar8203@gmail.com"
+    try:
+        success = GmailService._send_smtp_email(
+            to_email=to_email,
+            subject="[Hairdrama Test] Diagnostics Email",
+            html_body="<p>Diagnostic test from backend</p>",
+            plain_body="Diagnostic test from backend"
+        )
+        return jsonify({
+            "success": success,
+            "to": to_email,
+            "gmail_user": Config.GMAIL_USER,
+            "app_password_len": len(Config.GMAIL_APP_PASSWORD) if Config.GMAIL_APP_PASSWORD else 0,
+            "smtp_server": Config.SMTP_SERVER,
+            "smtp_port": Config.SMTP_PORT
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "type": type(e).__name__
+        }), 500
