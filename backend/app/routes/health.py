@@ -33,7 +33,7 @@ def health_check():
 
     return jsonify({
         "status": "healthy" if db_test_ok else "degraded",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "service": "hairdrama-task-api",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": {
@@ -42,7 +42,8 @@ def health_check():
             "error": db_test_err
         },
         "email_service": {
-            "provider": "gmail_smtp",
+            "provider": "gmail_api_https" if GmailService.is_gmail_api_configured() else "gmail_smtp",
+            "gmail_api_configured": GmailService.is_gmail_api_configured(),
             "configured": is_gmail_configured,
             "gmail_user": Config.GMAIL_USER,
             "password_configured": bool(Config.GMAIL_APP_PASSWORD),

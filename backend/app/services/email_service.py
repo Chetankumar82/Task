@@ -1,10 +1,14 @@
 import smtplib
 import logging
+import base64
+import threading
+import time
+import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from collections import deque
 from datetime import datetime, timezone
 from app.config import Config
@@ -31,146 +35,177 @@ class GmailService:
     """
     dispatch_logs = deque(maxlen=30)
 
+    _token_lock = threading.Lock()
+    _access_token: Optional[str] = None
+    _access_token_expiry: float = 0.0
+
     @classmethod
-    def is_configured(cls) -> bool:
+    def is_gmail_api_configured(cls) -> bool:
+        return bool(Config.GMAIL_CLIENT_ID and Config.GMAIL_CLIENT_SECRET and Config.GMAIL_REFRESH_TOKEN)
+
+    @classmethod
+    def is_smtp_configured(cls) -> bool:
         return bool(Config.GMAIL_USER and Config.GMAIL_APP_PASSWORD)
 
     @classmethod
+    def is_configured(cls) -> bool:
+        return cls.is_gmail_api_configured() or cls.is_smtp_configured()
+
+    # ---------------- Message building ----------------
+
+    @classmethod
+    def _build_message(cls, to_email: str, subject: str, html_body: str, plain_body: str) -> MIMEMultipart:
+        msg = MIMEMultipart("alternative")
+        msg["From"] = f"Hairdrama Tech Tasks <{Config.GMAIL_USER}>"
+        msg["To"] = to_email
+        msg["Subject"] = Header(subject, "utf-8")
+        msg.attach(MIMEText(plain_body, "plain", "utf-8"))
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+        return msg
+
+    # ---------------- Transport 1: Gmail REST API (HTTPS / port 443) ----------------
+
+    @classmethod
+    def _get_access_token(cls) -> str:
+        """Exchanges the long-lived refresh token for a short-lived access token (cached)."""
+        with cls._token_lock:
+            if cls._access_token and time.time() < cls._access_token_expiry - 60:
+                return cls._access_token
+            resp = requests.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "client_id": Config.GMAIL_CLIENT_ID,
+                    "client_secret": Config.GMAIL_CLIENT_SECRET,
+                    "refresh_token": Config.GMAIL_REFRESH_TOKEN,
+                    "grant_type": "refresh_token",
+                },
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                raise RuntimeError(f"OAuth token refresh failed ({resp.status_code}): {resp.text[:300]}")
+            data = resp.json()
+            cls._access_token = data["access_token"]
+            cls._access_token_expiry = time.time() + int(data.get("expires_in", 3600))
+            return cls._access_token
+
+    @classmethod
+    def _send_via_gmail_api(cls, msg: MIMEMultipart) -> None:
+        token = cls._get_access_token()
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode("ascii")
+        resp = requests.post(
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"raw": raw},
+            timeout=20,
+        )
+        if resp.status_code not in (200, 202):
+            raise RuntimeError(f"Gmail API send failed ({resp.status_code}): {resp.text[:300]}")
+
+    # ---------------- Transport 2: Gmail SMTP (ports 587 / 465) ----------------
+
+    @classmethod
+    def _send_via_smtp(cls, msg: MIMEMultipart) -> None:
+        clean_password = (Config.GMAIL_APP_PASSWORD or "").replace(" ", "").strip()
+        try:
+            with smtplib.SMTP(Config.SMTP_SERVER, Config.SMTP_PORT, timeout=10) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(Config.GMAIL_USER, clean_password)
+                server.send_message(msg)
+            return
+        except Exception as e587:
+            logger.warning("[EmailService] SMTP 587 failed: %s. Trying 465 (SSL)...", e587)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server_ssl:
+            server_ssl.ehlo()
+            server_ssl.login(Config.GMAIL_USER, clean_password)
+            server_ssl.send_message(msg)
+
+    @classmethod
+    def _deliver(cls, msg: MIMEMultipart) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+        """Tries each configured transport in order. Returns (sent, transport_used, attempts)."""
+        attempts: Dict[str, Any] = {}
+        transports = []
+        if cls.is_gmail_api_configured():
+            transports.append(("gmail_api_https", cls._send_via_gmail_api))
+        if cls.is_smtp_configured():
+            transports.append(("gmail_smtp", cls._send_via_smtp))
+
+        for name, fn in transports:
+            try:
+                fn(msg)
+                attempts[name] = {"status": "success", "error": None}
+                return True, name, attempts
+            except Exception as e:
+                attempts[name] = {"status": "failed", "error": f"{type(e).__name__}: {e}"}
+                logger.error("[EmailService] Transport %s failed: %s", name, e)
+        return False, None, attempts
+
+    @classmethod
     def _send_smtp_email(cls, to_email: str, subject: str, html_body: str, plain_body: str) -> bool:
-        """Internal synchronous helper executed in background worker thread."""
+        """Synchronous send (executed in background worker thread). Name kept for backwards compatibility."""
         if not to_email:
-            print("[EmailService] No recipient email specified. Skipping.", flush=True)
             logger.warning("[EmailService] No recipient email specified. Skipping.")
             return False
 
         safe_subj = str(subject).encode("ascii", "replace").decode("ascii")
 
         if not cls.is_configured():
-            print("=" * 60, flush=True)
-            print("[EmailService] Gmail credentials not set. Simulated Email Dispatch:", flush=True)
-            print(f"To: {to_email}", flush=True)
-            print(f"Subject: {safe_subj}", flush=True)
-            print(f"Preview: {plain_body[:160].replace('\n', ' ')}", flush=True)
-            print("=" * 60, flush=True)
+            print(f"[EmailService] No email transport configured. Simulated email to {to_email}: {safe_subj}", flush=True)
             return True
 
         try:
-            print(f"[EmailService] Connecting to {Config.SMTP_SERVER} to send '{safe_subj}' to {to_email}...", flush=True)
-            msg = MIMEMultipart("alternative")
-            msg["From"] = f"Hairdrama Tech Tasks <{Config.GMAIL_USER}>"
-            msg["To"] = to_email
-            msg["Subject"] = Header(subject, "utf-8")
-
-            # Attach plain text and HTML versions with explicit UTF-8 encoding
-            msg.attach(MIMEText(plain_body, "plain", "utf-8"))
-            msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-            clean_password = (Config.GMAIL_APP_PASSWORD or "").replace(" ", "").strip()
-            sent = False
-            last_error = None
-
-            # Attempt 1: Port 587 with STARTTLS (10s timeout)
-            try:
-                with smtplib.SMTP(Config.SMTP_SERVER, Config.SMTP_PORT, timeout=10) as server:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(Config.GMAIL_USER, clean_password)
-                    server.send_message(msg)
-                sent = True
-            except Exception as e587:
-                last_error = e587
-                print(f"[EmailService] Port 587 attempt failed: {e587}. Trying Port 465 (SSL)...", flush=True)
-                # Attempt 2: Port 465 with SSL (10s timeout)
-                try:
-                    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server_ssl:
-                        server_ssl.ehlo()
-                        server_ssl.login(Config.GMAIL_USER, clean_password)
-                        server_ssl.send_message(msg)
-                    sent = True
-                except Exception as e465:
-                    last_error = e465
-                    print(f"[EmailService] Port 465 attempt failed: {e465}", flush=True)
-
-            cls.dispatch_logs.append({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "to": to_email,
-                "subject": safe_subj,
-                "sent": sent,
-                "error": str(last_error) if last_error else None
-            })
-
-            if sent:
-                print(f"[EmailService] SUCCESS: Delivered email to {to_email} (Subject: {safe_subj})", flush=True)
-                logger.info("[EmailService] Successfully delivered email to %s (Subject: %s)", to_email, safe_subj)
-                return True
-            else:
-                print(f"[EmailService] ERROR: Failed to send email via Gmail SMTP to {to_email}: {last_error}", flush=True)
-                logger.error("[EmailService] Failed to send email via Gmail SMTP to %s: %s", to_email, last_error)
-                return False
+            msg = cls._build_message(to_email, subject, html_body, plain_body)
+            sent, transport, attempts = cls._deliver(msg)
         except Exception as e:
-            cls.dispatch_logs.append({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "to": to_email,
-                "subject": safe_subj,
-                "sent": False,
-                "error": f"Exception: {str(e)}"
-            })
-            print(f"[EmailService] ERROR in email building: {e}", flush=True)
-            return False
+            sent, transport, attempts = False, None, {"build": {"status": "failed", "error": str(e)}}
+
+        cls.dispatch_logs.append({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "to": to_email,
+            "subject": safe_subj,
+            "sent": sent,
+            "transport": transport,
+            "attempts": attempts,
+        })
+
+        if sent:
+            print(f"[EmailService] SUCCESS via {transport}: {to_email} ({safe_subj})", flush=True)
+        else:
+            print(f"[EmailService] FAILED to deliver to {to_email}: {attempts}", flush=True)
+        return sent
 
     @classmethod
     def diagnose_smtp(cls, to_email: str) -> Dict[str, Any]:
-        """Performs step-by-step diagnostic test of Gmail SMTP and returns comprehensive report."""
-        clean_password = (Config.GMAIL_APP_PASSWORD or "").replace(" ", "").strip()
+        """Sends a diagnostic email through the configured transports and reports each attempt."""
         report: Dict[str, Any] = {
             "is_configured": cls.is_configured(),
             "gmail_user": Config.GMAIL_USER,
-            "password_configured": bool(Config.GMAIL_APP_PASSWORD),
-            "password_length": len(clean_password),
+            "gmail_api_configured": cls.is_gmail_api_configured(),
+            "smtp_configured": cls.is_smtp_configured(),
             "recipient": to_email,
-            "smtp_server": Config.SMTP_SERVER,
             "attempts": {},
+            "transport": None,
             "delivered": False
         }
 
         if not cls.is_configured():
-            report["error"] = "Gmail credentials not configured."
+            report["error"] = "No email transport configured."
             return report
 
-        msg = MIMEMultipart("alternative")
-        msg["From"] = f"Hairdrama Tech Tasks <{Config.GMAIL_USER}>"
-        msg["To"] = to_email
-        msg["Subject"] = Header("[Hairdrama] Diagnostic Verification Email", "utf-8")
-        msg.attach(MIMEText("This is an automated diagnostic test from Hairdrama Tech backend.", "plain", "utf-8"))
-        msg.attach(MIMEText("<p>This is an automated diagnostic test from Hairdrama Tech backend.</p>", "html", "utf-8"))
-
-        # Test Port 587
-        try:
-            with smtplib.SMTP(Config.SMTP_SERVER, 587, timeout=10) as s587:
-                s587.ehlo()
-                s587.starttls()
-                s587.ehlo()
-                s587.login(Config.GMAIL_USER, clean_password)
-                s587.send_message(msg)
-            report["attempts"]["port_587"] = {"status": "success", "error": None}
-            report["delivered"] = True
-            return report
-        except Exception as e:
-            report["attempts"]["port_587"] = {"status": "failed", "error": f"{type(e).__name__}: {str(e)}"}
-
-        # Test Port 465
-        try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as s465:
-                s465.ehlo()
-                s465.login(Config.GMAIL_USER, clean_password)
-                s465.send_message(msg)
-            report["attempts"]["port_465"] = {"status": "success", "error": None}
-            report["delivered"] = True
-            return report
-        except Exception as e:
-            report["attempts"]["port_465"] = {"status": "failed", "error": f"{type(e).__name__}: {str(e)}"}
-
+        msg = cls._build_message(
+            to_email,
+            "[Hairdrama] Diagnostic Verification Email",
+            "<p>This is an automated diagnostic test from Hairdrama Tech backend.</p>",
+            "This is an automated diagnostic test from Hairdrama Tech backend.",
+        )
+        sent, transport, attempts = cls._deliver(msg)
+        report.update({"delivered": sent, "transport": transport, "attempts": attempts})
+        if not sent and not cls.is_gmail_api_configured():
+            report["hint"] = (
+                "SMTP is blocked on this host (e.g. Render free tier). Set GMAIL_CLIENT_ID, "
+                "GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN to send via the Gmail API over HTTPS."
+            )
         return report
 
     @classmethod

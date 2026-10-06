@@ -20,6 +20,11 @@ class Config:
     GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
     SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+
+    # Gmail REST API (HTTPS, port 443) — used on hosts that block SMTP (e.g. Render free tier)
+    GMAIL_CLIENT_ID = os.getenv("GMAIL_CLIENT_ID", "").strip()
+    GMAIL_CLIENT_SECRET = os.getenv("GMAIL_CLIENT_SECRET", "").strip()
+    GMAIL_REFRESH_TOKEN = os.getenv("GMAIL_REFRESH_TOKEN", "").strip()
     
     # Frontend and CORS Configuration
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
