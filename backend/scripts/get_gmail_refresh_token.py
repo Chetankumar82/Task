@@ -58,9 +58,17 @@ def main() -> None:
         def log_message(self, *args):
             pass
 
-    print("Opening browser for Google consent...\nIf it doesn't open, visit:\n" + auth_url + "\n")
-    webbrowser.open(auth_url)
-    HTTPServer(("localhost", PORT), Handler).handle_request()
+    print("=" * 70, flush=True)
+    print("STEP 1: Open this URL in your browser to authorize Gmail API access:\n", flush=True)
+    print(auth_url, flush=True)
+    print("\n" + "=" * 70, flush=True)
+    print("Waiting for you to log in and approve in the browser...", flush=True)
+    try:
+        webbrowser.open(auth_url)
+    except Exception:
+        pass
+    server = HTTPServer(("127.0.0.1", PORT), Handler)
+    server.handle_request()
 
     if not result.get("code"):
         print("Authorization failed:", result.get("error"))
