@@ -12,12 +12,6 @@ import {
   Moon, 
   LogOut, 
   Sparkles, 
-  CheckCircle2, 
-  Mail, 
-  Database,
-  ChevronRight,
-  ShieldCheck,
-  UserCheck,
   X
 } from 'lucide-react';
 import { UserProfile, DashboardStats, SystemHealth } from '@/lib/types';
@@ -210,13 +204,14 @@ export function Sidebar({
                   padding: '9px 12px',
                   borderRadius: '10px',
                   border: 'none',
-                  background: isActive ? 'var(--primary)' : 'transparent',
+                  background: isActive ? 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)' : 'transparent',
                   color: isActive ? '#ffffff' : 'var(--text-secondary)',
                   fontWeight: isActive ? 700 : 500,
                   fontSize: '13px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   textAlign: 'left',
+                  boxShadow: isActive ? '0 4px 14px var(--primary-glow)' : 'none',
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
@@ -302,50 +297,68 @@ export function Sidebar({
       </div>
 
       {/* Bottom Section: Theme Toggle + User Profile */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '16px', borderTop: '1px solid var(--sidebar-border)' }}>
-        {/* Theme Switcher Toggle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '16px', borderTop: '1px solid var(--sidebar-border)' }}>
+        {/* Modern Segmented Theme Control */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '6px 10px',
-          borderRadius: '10px',
-          background: 'var(--surface-card-hover)',
-          border: '1px solid var(--border-subtle)',
+          flexDirection: 'column',
+          gap: '6px',
         }}>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Appearance
-          </span>
-          <button
-            onClick={onToggleTheme}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'var(--surface-glass)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              color: 'var(--text-primary)',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-          >
-            {theme === 'dark' ? (
-              <>
-                <Sun size={13} color="#fbbf24" />
-                <span>Light</span>
-              </>
-            ) : (
-              <>
-                <Moon size={13} color="#6366f1" />
-                <span>Dark</span>
-              </>
-            )}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+              Appearance
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              {theme === 'light' ? 'Light' : 'Dark'}
+            </span>
+          </div>
+
+          <div className="theme-segmented-control">
+            <button
+              onClick={() => theme !== 'light' && onToggleTheme()}
+              className={`theme-segmented-btn ${theme === 'light' ? 'active' : ''}`}
+              title="Switch to Light Theme"
+            >
+              <Sun size={13} color={theme === 'light' ? '#d97706' : 'currentColor'} />
+              <span>Light</span>
+            </button>
+            <button
+              onClick={() => theme !== 'dark' && onToggleTheme()}
+              className={`theme-segmented-btn ${theme === 'dark' ? 'active' : ''}`}
+              title="Switch to Dark Theme"
+            >
+              <Moon size={13} color={theme === 'dark' ? '#818cf8' : 'currentColor'} />
+              <span>Dark</span>
+            </button>
+          </div>
         </div>
+
+        {/* System Health Badge */}
+        {systemHealth && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 10px',
+            borderRadius: '8px',
+            background: 'var(--surface-sunken)',
+            fontSize: '11px',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border-subtle)',
+          }}>
+            <span style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: systemHealth?.database?.connected ? 'var(--status-completed)' : '#f59e0b',
+              boxShadow: systemHealth?.database?.connected ? '0 0 6px rgba(16, 185, 129, 0.4)' : 'none',
+              display: 'inline-block',
+            }} />
+            <span style={{ fontWeight: 600 }}>
+              {systemHealth?.database?.connected ? 'API & Database Connected' : 'Syncing...'}
+            </span>
+          </div>
+        )}
 
         {/* User Profile Card */}
         {currentUser ? (

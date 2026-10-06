@@ -3,14 +3,8 @@
 import React, { useState } from 'react';
 import { 
   PieChart as PieIcon, 
-  BarChart3, 
   Users, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Flame,
-  Award
+  Flame
 } from 'lucide-react';
 import { Task, DashboardStats, UserProfile } from '@/lib/types';
 
@@ -142,13 +136,13 @@ export function AnalyticsCharts({
               strokeWidth="18"
             />
 
-            {/* Pending Arc (Blue) */}
+            {/* Pending Arc */}
             <circle
               cx="90"
               cy="90"
               r={radius}
               fill="transparent"
-              stroke="#38bdf8"
+              stroke="var(--status-pending)"
               strokeWidth={hoveredSlice === 'pending' ? '22' : '18'}
               strokeDasharray={`${pendingStroke} ${circumference}`}
               strokeDashoffset="0"
@@ -159,13 +153,13 @@ export function AnalyticsCharts({
               onClick={() => onFilterByStatus && onFilterByStatus('pending')}
             />
 
-            {/* In Progress Arc (Amber) */}
+            {/* In Progress Arc */}
             <circle
               cx="90"
               cy="90"
               r={radius}
               fill="transparent"
-              stroke="#fbbf24"
+              stroke="var(--status-inprogress)"
               strokeWidth={hoveredSlice === 'in_progress' ? '22' : '18'}
               strokeDasharray={`${inProgressStroke} ${circumference}`}
               strokeDashoffset={-pendingStroke}
@@ -176,13 +170,13 @@ export function AnalyticsCharts({
               onClick={() => onFilterByStatus && onFilterByStatus('in_progress')}
             />
 
-            {/* Completed Arc (Green) */}
+            {/* Completed Arc */}
             <circle
               cx="90"
               cy="90"
               r={radius}
               fill="transparent"
-              stroke="#34d399"
+              stroke="var(--status-completed)"
               strokeWidth={hoveredSlice === 'completed' ? '22' : '18'}
               strokeDasharray={`${completedStroke} ${circumference}`}
               strokeDashoffset={-(pendingStroke + inProgressStroke)}
@@ -217,8 +211,8 @@ export function AnalyticsCharts({
           <div 
             onClick={() => onFilterByStatus && onFilterByStatus('completed')}
             style={{
-              background: 'rgba(52, 211, 153, 0.08)',
-              border: '1px solid rgba(52, 211, 153, 0.25)',
+              background: 'var(--status-completed-bg)',
+              border: '1px solid var(--status-completed-border)',
               borderRadius: '10px',
               padding: '8px',
               textAlign: 'center',
@@ -228,8 +222,8 @@ export function AnalyticsCharts({
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            <div style={{ fontSize: '11px', color: '#34d399', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }} />
+            <div style={{ fontSize: '11px', color: 'var(--status-completed)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-completed)' }} />
               Completed
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{completed}</div>
@@ -239,8 +233,8 @@ export function AnalyticsCharts({
           <div 
             onClick={() => onFilterByStatus && onFilterByStatus('in_progress')}
             style={{
-              background: 'rgba(251, 191, 36, 0.08)',
-              border: '1px solid rgba(251, 191, 36, 0.25)',
+              background: 'var(--status-inprogress-bg)',
+              border: '1px solid var(--status-inprogress-border)',
               borderRadius: '10px',
               padding: '8px',
               textAlign: 'center',
@@ -250,8 +244,8 @@ export function AnalyticsCharts({
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            <div style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24' }} />
+            <div style={{ fontSize: '11px', color: 'var(--status-inprogress)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-inprogress)' }} />
               In Progress
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{inProgress}</div>
@@ -261,8 +255,8 @@ export function AnalyticsCharts({
           <div 
             onClick={() => onFilterByStatus && onFilterByStatus('pending')}
             style={{
-              background: 'rgba(56, 189, 248, 0.08)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
+              background: 'var(--status-pending-bg)',
+              border: '1px solid var(--status-pending-border)',
               borderRadius: '10px',
               padding: '8px',
               textAlign: 'center',
@@ -272,14 +266,15 @@ export function AnalyticsCharts({
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            <div style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8' }} />
+            <div style={{ fontSize: '11px', color: 'var(--status-pending)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-pending)' }} />
               Pending
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{pending}</div>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{pendingPct}%</div>
           </div>
         </div>
+
       </div>
 
       {/* Chart Card 2: Priority Breakdown Bar & Urgency Meter */}

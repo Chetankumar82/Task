@@ -30,5 +30,5 @@ class Config:
     DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
     DEV_MODE = os.getenv("DEV_MODE", "False").lower() in ("true", "1", "yes")
     
-    # Base URL for email action links
-    APP_PUBLIC_URL = os.getenv("APP_PUBLIC_URL", "http://localhost:3000")
+    # Base URL for email action links (points to hosted production website)
+    APP_PUBLIC_URL = (os.getenv("APP_PUBLIC_URL") or os.getenv("FRONTEND_URL") or "http://localhost:3000").rstrip("/")

@@ -4,10 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Mail, 
-  Calendar, 
   AlertCircle, 
-  User, 
-  Check, 
   Sparkles 
 } from 'lucide-react';
 import { Task, TaskPriority, TaskFormData, UserProfile } from '@/lib/types';
@@ -18,6 +15,7 @@ interface TaskModalProps {
   onSubmit: (formData: TaskFormData) => Promise<void>;
   initialData?: Task | null;
   users: UserProfile[];
+  currentUserId?: string;
 }
 
 export function TaskModal({
@@ -26,6 +24,7 @@ export function TaskModal({
   onSubmit,
   initialData,
   users,
+  currentUserId,
 }: TaskModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -47,10 +46,10 @@ export function TaskModal({
       setDescription('');
       setPriority('medium');
       setDueDate('');
-      setAssignedTo('');
+      setAssignedTo(currentUserId || '');
     }
     setValidationError('');
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, currentUserId]);
 
   if (!isOpen) return null;
 
@@ -81,10 +80,10 @@ export function TaskModal({
   };
 
   const priorities: { id: TaskPriority; label: string; color: string }[] = [
-    { id: 'low', label: 'Low', color: '#94a3b8' },
-    { id: 'medium', label: 'Medium', color: '#60a5fa' },
-    { id: 'high', label: 'High', color: '#fb923c' },
-    { id: 'urgent', label: 'Urgent', color: '#f87171' },
+    { id: 'low', label: 'Low', color: 'var(--priority-low)' },
+    { id: 'medium', label: 'Medium', color: 'var(--priority-medium)' },
+    { id: 'high', label: 'High', color: 'var(--priority-high)' },
+    { id: 'urgent', label: 'Urgent', color: 'var(--priority-urgent)' },
   ];
 
   const selectedUser = users.find((u) => u.id === assignedTo);

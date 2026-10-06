@@ -2,13 +2,9 @@
 
 import React from 'react';
 import { 
-  CheckCircle, 
-  ArrowRight, 
-  RotateCcw, 
   Trash2, 
   Edit3, 
-  Clock,
-  User
+  Clock
 } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
 

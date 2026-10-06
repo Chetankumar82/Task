@@ -14,8 +14,8 @@
 
 ## 🌐 Live Production Links & Credentials
 
-- **Live Application (Frontend)**: [https://hairdrama-tech-task.vercel.app](https://hairdrama-tech-task.vercel.app) *(or your deployed Vercel URL)*
-- **Live REST API (Backend)**: [https://hairdrama-api.onrender.com](https://hairdrama-api.onrender.com) *(or your deployed Render URL)*
+- **Live Application (Frontend)**: [https://task-navy-eta.vercel.app](https://task-navy-eta.vercel.app)
+- **Live REST API (Backend)**: [https://task-fnuz.onrender.com](https://task-fnuz.onrender.com)
 - **API Health Check**: `https://<backend-url>/api/health`
 - **GitHub Repository**: [https://github.com/Chetankumar82/Task](https://github.com/Chetankumar82/Task)
 

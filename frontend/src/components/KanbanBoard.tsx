@@ -33,22 +33,22 @@ export function KanbanBoard({
       status: 'pending',
       title: 'Pending',
       icon: Clock,
-      color: '#60a5fa',
-      bgColor: 'rgba(59, 130, 246, 0.12)',
+      color: 'var(--status-pending)',
+      bgColor: 'var(--status-pending-bg)',
     },
     {
       status: 'in_progress',
       title: 'In Progress',
       icon: AlertCircle,
-      color: '#fbbf24',
-      bgColor: 'rgba(245, 158, 11, 0.12)',
+      color: 'var(--status-inprogress)',
+      bgColor: 'var(--status-inprogress-bg)',
     },
     {
       status: 'completed',
       title: 'Completed',
       icon: CheckCircle2,
-      color: '#34d399',
-      bgColor: 'rgba(16, 185, 129, 0.12)',
+      color: 'var(--status-completed)',
+      bgColor: 'var(--status-completed-bg)',
     },
   ];
 

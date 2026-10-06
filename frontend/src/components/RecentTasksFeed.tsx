@@ -45,17 +45,19 @@ export function RecentTasksFeed({
                 justifyContent: 'space-between',
                 padding: '10px 14px',
                 borderRadius: '10px',
-                background: 'var(--surface-card-hover)',
+                background: 'var(--surface-card)',
                 border: '1px solid var(--border-subtle)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--border-medium)';
+                e.currentTarget.style.background = 'var(--surface-card-hover)';
                 e.currentTarget.style.transform = 'translateX(2px)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.background = 'var(--surface-card)';
                 e.currentTarget.style.transform = 'translateX(0)';
               }}
             >
@@ -136,7 +138,7 @@ export function RecentTasksFeed({
           ))
         ) : (
           <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-            No tasks created yet. Click "+ Create Task" to get started.
+            No tasks created yet. Click &quot;+ Create Task&quot; to get started.
           </div>
         )}
       </div>

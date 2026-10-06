@@ -3,8 +3,6 @@
 import React from 'react';
 import { 
   Calendar, 
-  User, 
-  MoreVertical, 
   CheckCircle, 
   ArrowRight, 
   RotateCcw, 
@@ -12,8 +10,7 @@ import {
   Edit3,
   Clock,
   Flame,
-  Zap,
-  AlertTriangle
+  Zap
 } from 'lucide-react';
 import { Task, TaskStatus } from '@/lib/types';
 
@@ -44,11 +41,11 @@ export function TaskCard({
   const isOverdue = task.due_date && task.status !== 'completed' && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0));
 
   const priorityConfig = {
-    urgent: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.35)', icon: Flame },
-    high: { color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.35)', icon: Zap },
-    medium: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)', border: 'rgba(56, 189, 248, 0.35)', icon: Clock },
-    low: { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', icon: CheckCircle },
-  }[task.priority] || { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', icon: Clock };
+    urgent: { color: 'var(--priority-urgent)', bg: 'rgba(220, 38, 38, 0.09)', border: 'rgba(220, 38, 38, 0.25)', icon: Flame },
+    high: { color: 'var(--priority-high)', bg: 'rgba(234, 88, 12, 0.09)', border: 'rgba(234, 88, 12, 0.25)', icon: Zap },
+    medium: { color: 'var(--priority-medium)', bg: 'rgba(2, 132, 199, 0.09)', border: 'rgba(2, 132, 199, 0.25)', icon: Clock },
+    low: { color: 'var(--priority-low)', bg: 'rgba(100, 116, 139, 0.09)', border: 'rgba(100, 116, 139, 0.25)', icon: CheckCircle },
+  }[task.priority] || { color: 'var(--priority-low)', bg: 'rgba(100, 116, 139, 0.09)', border: 'rgba(100, 116, 139, 0.25)', icon: Clock };
 
   const PriorityIcon = priorityConfig.icon;
 
@@ -63,8 +60,9 @@ export function TaskCard({
         borderTop: '1px solid var(--border-subtle)',
         borderRight: '1px solid var(--border-subtle)',
         borderBottom: '1px solid var(--border-subtle)',
-        borderLeft: `4px solid ${priorityConfig.color}`,
+        borderLeft: `3.5px solid ${priorityConfig.color}`,
         borderRadius: '12px',
+        background: 'var(--surface-card)',
       }}
     >
       {/* Top Header: Priority Badge + Edit/Delete Actions */}
@@ -165,17 +163,17 @@ export function TaskCard({
           alignItems: 'center', 
           gap: '6px', 
           fontSize: '11px', 
-          color: isOverdue ? '#fca5a5' : 'var(--text-secondary)',
-          background: isOverdue ? 'rgba(239, 68, 68, 0.15)' : 'var(--tag-bg)',
-          border: isOverdue ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border-subtle)',
+          color: isOverdue ? 'var(--priority-urgent)' : 'var(--text-secondary)',
+          background: isOverdue ? 'rgba(220, 38, 38, 0.09)' : 'var(--tag-bg)',
+          border: isOverdue ? '1px solid rgba(220, 38, 38, 0.25)' : '1px solid var(--border-subtle)',
           padding: '3px 8px',
           borderRadius: '6px',
           marginBottom: '12px',
           fontWeight: isOverdue ? 600 : 500
         }}>
-          <Calendar size={12} color={isOverdue ? '#f87171' : 'var(--primary)'} />
+          <Calendar size={12} color={isOverdue ? 'var(--priority-urgent)' : 'var(--primary)'} />
           <span>Due {formattedDueDate}</span>
-          {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px', color: '#f87171' }}>• Overdue</span>}
+          {isOverdue && <span style={{ textTransform: 'uppercase', fontSize: '10px', color: 'var(--priority-urgent)', fontWeight: 700 }}>• Overdue</span>}
         </div>
       )}
 

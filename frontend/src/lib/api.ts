@@ -1,7 +1,10 @@
 import { getAuthToken } from './supabase';
 import { Task, UserProfile, DashboardStats, TaskFormData, ApiResponse, SystemHealth } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Normalize API base URL: trim whitespace, strip trailing slashes and remove trailing '/api'
+// so that endpoints starting with '/api/...' do not result in '/api/api/...' or double slashes.
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = rawApiUrl.trim().replace(/\/+$/, '').replace(/\/api$/, '');
 
 class ApiClient {
   private async getHeaders(): Promise<HeadersInit> {

@@ -94,13 +94,12 @@ def create_task():
 
     created_task = DatabaseService.create_task(task_payload)
 
-    # Trigger asynchronous Gmail notification
-    if assignee_profile:
-        GmailService.notify_task_created(
-            task=created_task,
-            creator=g.current_user,
-            assignee=assignee_profile
-        )
+    # Trigger asynchronous Gmail notification (notifies creator and assignee)
+    GmailService.notify_task_created(
+        task=created_task,
+        creator=g.current_user,
+        assignee=assignee_profile
+    )
 
     return jsonify({
         "success": True,

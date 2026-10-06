@@ -4,12 +4,7 @@ import React from 'react';
 import { 
   Users, 
   Mail, 
-  CheckCircle2, 
-  Clock, 
-  Plus, 
   ShieldCheck, 
-  Award,
-  Sparkles,
   ArrowRight
 } from 'lucide-react';
 import { UserProfile, Task } from '@/lib/types';
@@ -25,7 +20,6 @@ export function TeamView({
   users,
   tasks,
   onSelectUserFilter,
-  onOpenCreateTaskForUser,
 }: TeamViewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -127,7 +121,7 @@ export function TeamView({
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
                   gap: '8px',
-                  background: 'var(--surface-glass)',
+                  background: 'var(--surface-column)',
                   padding: '12px',
                   borderRadius: '10px',
                   marginBottom: '16px',

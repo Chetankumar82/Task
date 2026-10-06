@@ -15,13 +15,12 @@ def create_app(config_class=Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Enable CORS for Next.js frontend
+    # Enable CORS for Next.js frontend (Bearer token headers allowed across all origins)
     CORS(
         app,
         resources={r"/api/*": {"origins": "*"}},
         allow_headers=["Content-Type", "Authorization", "X-Mock-User-Id"],
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        supports_credentials=True
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
     # Register Blueprints
@@ -52,5 +51,10 @@ def create_app(config_class=Config) -> Flask:
             "docs": "/api/health",
             "status": "online"
         }), 200
+
+    from app.routes.health import health_check
+    @app.route("/health")
+    def root_health():
+        return health_check()
 
     return app

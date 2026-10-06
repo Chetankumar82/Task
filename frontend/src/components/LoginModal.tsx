@@ -5,7 +5,6 @@ import {
   X, 
   Sparkles, 
   ShieldCheck, 
-  ArrowRight, 
   AlertCircle,
   Mail,
   UserPlus,

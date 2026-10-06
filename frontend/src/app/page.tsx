@@ -40,8 +40,8 @@ import {
 export default function DashboardPage() {
   const { showToast } = useToast();
 
-  // Dual Theme State (Light vs Dark)
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  // Dual Theme State (Light by default vs Dark)
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
   // Navigation State (default to rich overview with charts & metrics)
   const [currentTab, setCurrentTab] = useState<NavTab>('overview');
@@ -76,11 +76,11 @@ export default function DashboardPage() {
   // Theme preference
   useEffect(() => {
     try {
-      const savedTheme = (localStorage.getItem('app_theme') as 'dark' | 'light') || 'dark';
+      const savedTheme = (localStorage.getItem('app_theme') as 'dark' | 'light') || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } catch {
-      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
@@ -125,12 +125,12 @@ export default function DashboardPage() {
         if (storedUser) {
           setCurrentUser(JSON.parse(storedUser));
         } else {
-          // Default to first demo reviewer account for instant preview
+          // Default to Chetan Kumar for instant preview with real Gmail integration
           const defaultUser: UserProfile = {
-            id: 'usr_demo_1',
-            email: 'sarah.developer@gmail.com',
-            full_name: 'Sarah Connor',
-            avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+            id: '00adccb5-0e58-48f0-9c14-ece2794398b9',
+            email: 'chetankumar8203@gmail.com',
+            full_name: 'Chetan Kumar',
+            avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocKZNSZHvP2ooPFqHusDm1UF4x88OboiydcF7Y6nKNFS0DY2AQ=s96-c',
           };
           setCurrentUser(defaultUser);
           localStorage.setItem('active_demo_user', JSON.stringify(defaultUser));
@@ -377,7 +377,7 @@ export default function DashboardPage() {
                     placeholder="Search tasks..."
                     style={{
                       width: '100%',
-                      background: 'var(--surface-card-hover)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-subtle)',
                       borderRadius: '8px',
                       padding: '7px 28px 7px 32px',
@@ -411,7 +411,7 @@ export default function DashboardPage() {
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
                     style={{
-                      background: 'var(--surface-card-hover)',
+                      background: 'var(--surface-card)',
                       border: '1px solid var(--border-subtle)',
                       borderRadius: '8px',
                       padding: '6px 10px',
@@ -588,7 +588,7 @@ export default function DashboardPage() {
             <TeamView
               users={allUsers}
               tasks={tasks}
-              onSelectUserFilter={(userId) => {
+              onSelectUserFilter={() => {
                 setScopeFilter('all');
                 setSearchQuery('');
                 setCurrentTab('list');
@@ -608,6 +608,7 @@ export default function DashboardPage() {
         onSubmit={handleTaskSubmit}
         initialData={editingTask}
         users={allUsers}
+        currentUserId={currentUser?.id}
       />
 
       {/* Google OAuth Login Modal */}
