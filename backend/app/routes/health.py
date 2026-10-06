@@ -33,6 +33,7 @@ def health_check():
 
     return jsonify({
         "status": "healthy" if db_test_ok else "degraded",
+        "version": "1.2.0",
         "service": "hairdrama-task-api",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": {
@@ -51,6 +52,26 @@ def health_check():
         "app_public_url": Config.APP_PUBLIC_URL,
         "frontend_url": Config.FRONTEND_URL
     }), 200
+
+
+@health_bp.route("/email-logs", methods=["GET"])
+def get_email_logs():
+    """Returns the in-memory dispatch history of recent email attempts."""
+    return jsonify({
+        "success": True,
+        "dispatches": list(GmailService.dispatch_logs),
+        "configured": GmailService.is_configured(),
+        "gmail_user": Config.GMAIL_USER,
+        "password_configured": bool(Config.GMAIL_APP_PASSWORD)
+    }), 200
+
+
+@health_bp.route("/test-email", methods=["GET"])
+def test_email_health():
+    """Public health-level test endpoint for Gmail SMTP delivery."""
+    from flask import request
+    to_email = request.args.get("to") or Config.GMAIL_USER or "chetankumar8203@gmail.com"
+    return jsonify(GmailService.diagnose_smtp(to_email)), 200
 
 
 @health_bp.route("/stats", methods=["GET"])

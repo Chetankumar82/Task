@@ -5,6 +5,8 @@ from email.mime.text import MIMEText
 from email.header import Header
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Any, Optional
+from collections import deque
+from datetime import datetime, timezone
 from app.config import Config
 
 import sys
@@ -27,6 +29,7 @@ class GmailService:
     Gmail SMTP Notification Service.
     Dispatches responsive HTML notifications asynchronously for task lifecycle events.
     """
+    dispatch_logs = deque(maxlen=30)
 
     @classmethod
     def is_configured(cls) -> bool:
@@ -89,6 +92,14 @@ class GmailService:
                     last_error = e465
                     print(f"[EmailService] Port 465 attempt failed: {e465}", flush=True)
 
+            cls.dispatch_logs.append({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "to": to_email,
+                "subject": safe_subj,
+                "sent": sent,
+                "error": str(last_error) if last_error else None
+            })
+
             if sent:
                 print(f"[EmailService] SUCCESS: Delivered email to {to_email} (Subject: {safe_subj})", flush=True)
                 logger.info("[EmailService] Successfully delivered email to %s (Subject: %s)", to_email, safe_subj)
@@ -98,6 +109,13 @@ class GmailService:
                 logger.error("[EmailService] Failed to send email via Gmail SMTP to %s: %s", to_email, last_error)
                 return False
         except Exception as e:
+            cls.dispatch_logs.append({
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "to": to_email,
+                "subject": safe_subj,
+                "sent": False,
+                "error": f"Exception: {str(e)}"
+            })
             print(f"[EmailService] ERROR in email building: {e}", flush=True)
             return False
 
